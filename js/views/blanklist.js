@@ -15,38 +15,27 @@ import * as store from '../store.js';
 import { el, openModal, formatDate, initials, photoUrl } from '../ui.js';
 import { openPrintPreview } from './printpreview.js';
 
-const STORAGE_KEY = 'blanklist-columns';
-const DEFAULT_COLUMNS = ['', '', '', '', '', ''];
+const MAX_COLUMNS = 12;
 
 /**
- * Fragt die Spalten ab und öffnet dann die Druckvorschau.
+ * Fragt Spaltenzahl und (optionale) Überschriften ab und öffnet die Vorschau.
+ * Es ist bewusst nichts vorbelegt – die Liste bleibt völlig frei.
  * @param {{cls: import('../store.js').Klasse, students: import('../store.js').Schueler[]}} opts
  */
 export function openBlankListDialog({ cls, students }) {
-  const remembered = loadColumns();
-  const titleInput = el('input.input', {
-    id: 'bl-title', type: 'text', value: '', placeholder: 'z.B. Halbjahr 1 – Übersicht (optional)',
+  const countInput = el('input.input', {
+    id: 'bl-count', type: 'number', min: '1', max: String(MAX_COLUMNS), step: '1', value: '6',
+    inputmode: 'numeric',
   });
   const columnsInput = el('textarea.textarea', {
-    id: 'bl-columns', rows: '6',
-    placeholder: 'Eine Spaltenüberschrift pro Zeile, z.B.\nKA 1\nKA 2\nSoLei\nReferat',
+    id: 'bl-columns', rows: '5',
+    placeholder: 'Optional – eine Überschrift pro Zeile, von links nach rechts. Leer lassen für Kästchen ohne Beschriftung.',
   });
-  columnsInput.value = remembered.join('\n');
-  const countHint = el('p.hint');
-
-  const update = () => {
-    const n = parseColumns(columnsInput.value).length;
-    countHint.textContent = n
-      ? `${n} Spalte(n) · Leerzeilen ergeben Spalten ohne Überschrift`
-      : 'Ohne Eingabe entstehen 6 leere Spalten.';
-  };
-  columnsInput.addEventListener('input', update);
-  update();
 
   const body = el('div.form', {}, [
-    el('div.form-field', {}, [el('label.label', { for: 'bl-title', text: 'Titel' }), titleInput]),
-    el('div.form-field', {}, [el('label.label', { for: 'bl-columns', text: 'Spaltenüberschriften' }), columnsInput]),
-    countHint,
+    el('div.form-field', {}, [el('label.label', { for: 'bl-count', text: 'Anzahl Spalten' }), countInput]),
+    el('div.form-field', {}, [el('label.label', { for: 'bl-columns', text: 'Spaltenüberschriften (optional)' }), columnsInput]),
+    el('p.hint', { text: `Höchstens ${MAX_COLUMNS} Spalten. Stehen mehr Überschriften als Spalten da, zählt die Zahl der Überschriften.` }),
   ]);
 
   const modal = openModal({
@@ -57,38 +46,32 @@ export function openBlankListDialog({ cls, students }) {
       el('button.btn.btn--primary', {
         type: 'button', text: '⎙ Vorschau',
         onClick: () => {
-          const columns = parseColumns(columnsInput.value);
-          const cols = columns.length ? columns : DEFAULT_COLUMNS;
-          saveColumns(columns);
+          const labels = parseColumns(columnsInput.value);
+          const wanted = Math.min(MAX_COLUMNS, Math.max(1, Math.round(Number(countInput.value)) || 6));
+          const count = Math.max(wanted, labels.length);
+          const columns = Array.from({ length: count }, (_, i) => labels[i] || '');
           modal.close();
-          openBlankList({ cls, students, columns: cols, title: titleInput.value.trim() });
+          openBlankList({ cls, students, columns });
         },
       }),
     ],
   });
 }
 
-/** Zeilen → Spaltenliste; Leerzeilen bleiben als leere Überschrift erhalten, Rand-Leerzeilen fallen weg. */
+/** Zeilen → Überschriften; Leerzeilen in der Mitte bleiben als leere Überschrift erhalten. */
 function parseColumns(text) {
   const lines = text.split('\n').map((l) => l.trim());
   while (lines.length && !lines[0]) lines.shift();
   while (lines.length && !lines[lines.length - 1]) lines.pop();
-  return lines.slice(0, 12);
-}
-
-function loadColumns() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-}
-function saveColumns(columns) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(columns)); } catch { /* egal */ }
+  return lines.slice(0, MAX_COLUMNS);
 }
 
 /* ------------------------------------------------------------ Ausdruck */
 
 /**
- * @param {{cls: import('../store.js').Klasse, students: import('../store.js').Schueler[], columns: string[], title: string}} opts
+ * @param {{cls: import('../store.js').Klasse, students: import('../store.js').Schueler[], columns: string[]}} opts
  */
-export function openBlankList({ cls, students, columns, title }) {
+export function openBlankList({ cls, students, columns }) {
   const sorted = [...students].sort(store.byName);
   const preview = openPrintPreview({
     title: `Klassenliste – ${cls.name}`,
@@ -99,7 +82,7 @@ export function openBlankList({ cls, students, columns, title }) {
   const printed = formatDate(Date.now());
 
   const pages = [];
-  let { page, tbody } = newPage({ host, cls, title, columns, printed, first: true });
+  let { page, tbody } = newPage({ host, cls, columns, printed, first: true });
   pages.push(page);
 
   for (const student of sorted) {
@@ -107,25 +90,25 @@ export function openBlankList({ cls, students, columns, title }) {
     tbody.append(row);
     if (overflows(page)) {
       row.remove();
-      ({ page, tbody } = newPage({ host, cls, title, columns, printed, first: false }));
+      ({ page, tbody } = newPage({ host, cls, columns, printed, first: false }));
       pages.push(page);
       tbody.append(row);
     }
   }
 
   pages.forEach((p, i) => p.append(el('footer.sheet__pagefoot', {
-    text: `${cls.name}${title ? ` · ${title}` : ''} · Seite ${i + 1} von ${pages.length}`,
+    text: `${cls.name} · Seite ${i + 1} von ${pages.length}`,
   })));
 }
 
-function newPage({ host, cls, title, columns, printed, first }) {
+function newPage({ host, cls, columns, printed, first }) {
   const tbody = el('tbody');
   const page = el('section.sheet.sheet--list', {}, [
     el('header.sheet__head', {}, [
       el('div.sheet__ident', {}, [
         el('div', {}, [
           el('h1.sheet__name', { text: `Klasse ${cls.name}${first ? '' : ' (Fortsetzung)'}` }),
-          el('p.sheet__meta', { text: title ? `${title} · Stand ${printed}` : `Stand ${printed}` }),
+          el('p.sheet__meta', { text: `Stand ${printed}` }),
         ]),
       ]),
     ]),

@@ -133,11 +133,11 @@ liniertes **Notizfeld** bis zum Seitenende; unten steht die Seitenzahl.
 ### Leere Klassenliste
 
 **„⎙ Leere Liste“** im Reiter *Noten* erzeugt ein Raster zum Handeintragen:
-links Foto und Name (alphabetisch), rechts leere Kästchen. Die
-Spaltenüberschriften gibt man selbst ein (eine pro Zeile, z.B. „KA 1“,
-„SoLei“, „Referat“; Leerzeilen ergeben Spalten ohne Überschrift, maximal 12),
-dazu optional ein Titel. Die letzte Eingabe wird gemerkt. Bei großen Klassen
-geht es auf der nächsten Seite mit wiederholter Kopfzeile weiter.
+links Foto und Name (alphabetisch), rechts leere Kästchen. Man wählt die
+Anzahl der Spalten (bis 12) und kann optional Überschriften eingeben (eine
+pro Zeile, von links nach rechts); ohne Eingabe bleiben die Kästchen
+unbeschriftet. Oben steht nur Klasse und Datum. Bei großen Klassen geht es
+auf der nächsten Seite mit wiederholter Kopfzeile weiter.
 
 ## Sicherung
 
