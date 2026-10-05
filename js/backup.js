@@ -198,11 +198,13 @@ export async function applyBackup({ payload, photos }, mode) {
     studentRows.push(protectedDevice ? await store.encryptStudentWithKey(key, plain) : plain);
   }
 
+  // Zeitpunkt einer Note ist der Stundenbeginn (siehe store.saveEntry)
+  const sessionStart = new Map((payload.sessions || []).map((s) => [s.id, s.startedAt]));
   const gradeRows = [];
   for (const g of payload.grades || []) {
     const plain = {
       id: g.id, sessionId: g.sessionId, classId: g.classId, studentId: g.studentId,
-      createdAt: g.createdAt, updatedAt: g.updatedAt ?? g.createdAt,
+      createdAt: sessionStart.get(g.sessionId) ?? g.createdAt, updatedAt: g.updatedAt ?? g.createdAt,
       value: g.value ?? null, comment: g.comment || '',
       absent: Boolean(g.absent), weight: store.WEIGHT_OPTIONS.includes(g.weight) ? g.weight : 1,
     };

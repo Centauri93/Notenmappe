@@ -340,6 +340,13 @@ export async function findEntry(sessionId, studentId) {
  */
 export async function saveEntry({ sessionId, classId, studentId, ...patch }) {
   const existing = await findEntry(sessionId, studentId);
+  /*
+   * Zeitpunkt der Note = Beginn der Stunde (erster Eintrag in der Klasse),
+   * nicht der Moment des Antippens. So tragen alle Noten einer Stunde
+   * dieselbe Zeit – auch wenn die Stunde erst am nächsten Tag beendet
+   * oder eine Note nachgetragen wird.
+   */
+  const session = existing ? null : await get('sessions', sessionId);
   /** @type {Note} */
   const entry = existing || {
     id: newId(),
@@ -350,7 +357,7 @@ export async function saveEntry({ sessionId, classId, studentId, ...patch }) {
     comment: '',
     absent: false,
     weight: 1,
-    createdAt: Date.now(),
+    createdAt: session?.startedAt ?? Date.now(),
   };
 
   if ('value' in patch) {
@@ -442,6 +449,27 @@ export function average(grades) {
 export function formatAverage(avg) {
   if (avg === null || avg === undefined) return '–';
   return avg.toFixed(1).replace('.', ',');
+}
+
+/* ------------------------------------------------------- Datenpflege */
+
+/**
+ * Gleicht ältere Noten an: Vor dieser Version trug jede Note die Uhrzeit
+ * ihres Antippens; jetzt gilt der Stundenbeginn. Läuft einmal beim Start
+ * und braucht keinen Schlüssel – der Zeitstempel liegt unverschlüsselt.
+ */
+export async function alignGradeTimes() {
+  const FLAG = 'gradeTimesAligned';
+  if (await get('meta', FLAG)) return;
+  const sessions = new Map((await getAll('sessions')).map((s) => [s.id, s]));
+  const rows = await getAll('grades');
+  const changed = rows.filter((g) => {
+    const s = sessions.get(g.sessionId);
+    return s && g.createdAt !== s.startedAt;
+  });
+  for (const g of changed) g.createdAt = sessions.get(g.sessionId).startedAt;
+  if (changed.length) await writeRows({ grades: changed });
+  await put('meta', { key: FLAG, value: true, at: Date.now() });
 }
 
 /* ------------------------------------------------- Passwortschutz: Migration */

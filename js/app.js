@@ -3,6 +3,7 @@
 import { openDB } from './db.js';
 import { el, clear, toast, closeAllOverlays } from './ui.js';
 import * as security from './security.js';
+import * as store from './store.js';
 import { renderLock } from './views/lock.js';
 import { renderClasses } from './views/classes.js';
 import { renderStudents } from './views/students.js';
@@ -87,6 +88,7 @@ window.addEventListener('security:changed', updateLockButton);
 async function start() {
   try {
     await openDB();
+    await store.alignGradeTimes();
   } catch (err) {
     clear(app).append(el('div.empty', {}, [
       el('p', { text: 'Der lokale Speicher (IndexedDB) ist nicht verfügbar.' }),

@@ -68,6 +68,13 @@ ohne Einträge wird beim Beenden verworfen.
 Rechts unten auf jeder Karte steht der **gewichtete Durchschnitt der letzten
 6 Monate**. Die farbige Marke oben rechts zeigt die Note **dieser** Stunde.
 
+### Zeitpunkt einer Note
+
+Jede Note trägt als Zeitpunkt den **Beginn der Stunde** – also den Moment des
+ersten Eintrags in dieser Klasse, egal bei wem. Alle Noten einer Stunde haben
+damit dieselbe Zeit, auch wenn eine Note später nachgetragen oder die Stunde
+erst am nächsten Tag beendet wird. „Stunde beenden“ ändert keinen Zeitpunkt.
+
 ### Der Eintrag bleibt bis zum Stundenende änderbar
 
 Pro Schüler:in und Stunde gibt es **einen** Eintrag. Alles wird sofort
