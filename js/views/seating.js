@@ -53,7 +53,12 @@ export async function renderSeating(root, classId) {
     onClick: () => setFullscreen(!isFullscreen),
   });
 
-  const header = classHeader(cls, 'seating', [arrangeBtn, fullscreenBtn, closeBtn]);
+  const logBtn = el('button.btn', {
+    type: 'button', text: '📓 Klassenbuch', title: 'Eintrag: Was wurde in dieser Stunde gemacht?',
+    onClick: () => openLogDialog(),
+  });
+
+  const header = classHeader(cls, 'seating', [arrangeBtn, logBtn, fullscreenBtn, closeBtn]);
   const headerActions = header.querySelector('.page-head__actions');
   root.append(header);
 
@@ -104,11 +109,11 @@ export async function renderSeating(root, classId) {
     document.body.classList.toggle('seating-fullscreen', on);
     fullscreenBtn.textContent = on ? '✕ Vollbild beenden' : '⛶ Vollbild';
     if (on) {
-      statusActions.append(arrangeBtn, fullscreenBtn, closeBtn);
+      statusActions.append(arrangeBtn, logBtn, fullscreenBtn, closeBtn);
       canvas.style.maxHeight = '';
       requestBrowserFullscreen();
     } else {
-      headerActions.append(arrangeBtn, fullscreenBtn, closeBtn);
+      headerActions.append(arrangeBtn, logBtn, fullscreenBtn, closeBtn);
       exitBrowserFullscreen();
       fitCanvas();
     }
@@ -405,7 +410,9 @@ export async function renderSeating(root, classId) {
     statusText.textContent = openSession
       ? parts.join(' · ')
       : `Keine laufende Stunde – der erste Eintrag startet automatisch eine neue Stunde. ${students.length} Schüler:innen.`;
-    closeBtn.disabled = !openSession || sessionGrades.length === 0;
+    const hasLog = Boolean((openSession?.log || '').trim());
+    closeBtn.disabled = !openSession || (sessionGrades.length === 0 && !hasLog);
+    logBtn.textContent = hasLog ? '📓 Klassenbuch ✓' : '📓 Klassenbuch';
   }
 
   /* -------------------------------------------------------- Noteneingabe */
@@ -464,6 +471,46 @@ export async function renderSeating(root, classId) {
     for (const s of students) refreshCard(s.id);
     updateStatus();
     toast(result.closed ? `Stunde mit ${result.count} Eintrag/Einträgen abgeschlossen` : 'Leere Stunde verworfen', 'success');
+  }
+
+  /* --------------------------------------------------------------- Klassenbuch */
+
+  /** Freitext zur laufenden Stunde; legt bei Bedarf die Stunde an. */
+  function openLogDialog() {
+    const field = el('textarea.textarea.log-field', {
+      id: 'session-log', rows: '6',
+      placeholder: 'Was wurde in dieser Stunde gemacht? z.B. Destillation – Versuch 3, Auswertung in Gruppen …',
+    });
+    field.value = openSession?.log || '';
+    const modal = openModal({
+      title: openSession ? `Klassenbuch – Stunde vom ${formatDateTime(openSession.startedAt)}` : 'Klassenbuch – neue Stunde',
+      body: el('div.form', {}, [
+        el('div.form-field', {}, [el('label.label', { for: 'session-log', text: 'Eintrag' }), field]),
+        el('p.hint', { text: 'Reine Notiz zur Stunde – hat keinen Einfluss auf Noten oder Auswertungen. Nachträglich änderbar im Reiter „Klassenbuch“.' }),
+      ]),
+      actions: [
+        el('button.btn', { type: 'button', text: 'Abbrechen', onClick: () => modal.close() }),
+        el('button.btn.btn--primary', {
+          type: 'button', text: 'Speichern',
+          onClick: async () => {
+            try {
+              const text = field.value.trim();
+              if (!openSession) {
+                if (!text) { modal.close(); return; }
+                openSession = await store.getOrCreateOpenSession(classId);
+              }
+              openSession = await store.saveSessionLog(openSession.id, text);
+              updateStatus();
+              modal.close();
+              toast(text ? 'Klassenbucheintrag gespeichert' : 'Klassenbucheintrag entfernt', 'success');
+            } catch (err) {
+              toast(err.message || 'Konnte nicht gespeichert werden.', 'error');
+            }
+          },
+        }),
+      ],
+    });
+    field.focus();
   }
 
   /* ------------------------------------------------------- Automatisches Raster */

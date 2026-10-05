@@ -11,6 +11,7 @@ import { renderSeating } from './views/seating.js';
 import { renderTable } from './views/table.js';
 import { renderConferences, renderConference } from './views/conferences.js';
 import { renderConferenceStudent } from './views/conferencestudent.js';
+import { renderClassbook } from './views/classbook.js';
 import { renderSettings } from './views/settings.js';
 
 const app = document.getElementById('app');
@@ -23,6 +24,7 @@ const routes = [
   { pattern: /^#\/class\/([^/]+)\/students$/, run: (root, id) => renderStudents(root, id) },
   { pattern: /^#\/class\/([^/]+)\/seating$/, run: (root, id) => renderSeating(root, id) },
   { pattern: /^#\/class\/([^/]+)\/table$/, run: (root, id) => renderTable(root, id) },
+  { pattern: /^#\/class\/([^/]+)\/classbook$/, run: (root, id) => renderClassbook(root, id) },
   { pattern: /^#\/class\/([^/]+)\/conferences$/, run: (root, id) => renderConferences(root, id) },
   {
     pattern: /^#\/class\/([^/]+)\/conference\/([^/]+)$/,

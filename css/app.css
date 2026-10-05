@@ -1109,6 +1109,29 @@ body.seating-fullscreen .seating-canvas {
 .bullets li { padding-left: 1.1rem; position: relative; }
 .bullets li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
 
+/* -------------------------------------------------------------- Klassenbuch */
+.logbook { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.logbook__entry {
+  width: 100%;
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.logbook__entry:hover { border-color: var(--accent); }
+.logbook__entry--empty { background: transparent; box-shadow: none; border-style: dashed; }
+.logbook__entry--empty .logbook__text { color: var(--text-muted); font-style: italic; }
+.logbook__head { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; margin-bottom: .35rem; }
+.logbook__date { font-weight: 700; }
+.logbook__meta { color: var(--text-muted); font-size: .85rem; }
+.logbook__text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+.log-field { min-height: 140px; }
+
 /* --------------------------------------------------------- Notenbesprechung */
 
 /* Übersicht: eine Karte je Besprechung mit Fortschrittsring */

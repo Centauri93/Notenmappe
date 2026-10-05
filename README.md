@@ -53,6 +53,7 @@ CSS und ES-Modulen.
 | **Sitzplan** | Karten frei verschieben, antippen zum Benoten, Stunde beenden |
 | **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF, leere Klassenliste |
 | **Besprechung** | Notenbesprechungen anlegen, Klasse über den Sitzplan durchgehen, Endnote und Notizen, PDF |
+| **Klassenbuch** | Je Stunde ein Freitext, was gemacht wurde – ohne Einfluss auf Noten |
 | **Einstellungen** | Passwortschutz, Sicherung exportieren/importieren, Daten löschen |
 
 ### Klasse duplizieren
@@ -165,6 +166,16 @@ Kästchen; die Kopfzeile ist leer und 30 mm hoch, damit man Überschriften schr�
 und Datum; die Zeilen sind so hoch wie das Foto, 13 je Seite, größere
 Klassen laufen mit wiederholter Kopfzeile auf die nächste Seite.
 
+## Klassenbuch
+
+Je Stunde gibt es einen **Freitext** („Was wurde gemacht?“). Im Sitzplan
+über **„📓 Klassenbuch“** eintragen – auch ohne Noten; ein Eintrag startet
+wie eine Note die Stunde, und eine Stunde nur mit Eintrag bleibt beim
+Beenden erhalten. Der Reiter **Klassenbuch** listet alle Stunden
+chronologisch mit ihrem Eintrag; Antippen ergänzt oder ändert ihn, auch
+nachträglich. Das Klassenbuch hat keinerlei Einfluss auf Noten,
+Durchschnitte oder Besprechungen und ist in der Sicherung enthalten.
+
 ## Notenbesprechung
 
 Der Reiter **Besprechung** begleitet das Gespräch mit einzelnen Schüler:innen.
@@ -234,7 +245,7 @@ js/
   dnd.js                 Drag & Drop über Pointer-Events (Touch + Maus)
   ui.js                  DOM-Helfer, Modal, Toast, Formatierung
   app.js                 Hash-Router
-  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Eintrags-Dialog, Besprechung, Bericht, leere Liste, Einstellungen, Sperre
+  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Eintrags-Dialog, Besprechung, Klassenbuch, Bericht, leere Liste, Einstellungen, Sperre
 ```
 
 ### Datenmodell (IndexedDB, Datenbank `notenmappe-2`)
@@ -243,7 +254,7 @@ js/
 | --- | --- |
 | `classes` | `{ id, name, seating: { [studentId]: {x, y} }, cardScale, archivedAt, createdAt }` |
 | `students` | `{ id, classId, firstName, lastName, photoBytes: ArrayBuffer, createdAt }` – nach außen als `photo: Blob` |
-| `sessions` | `{ id, classId, startedAt, closedAt }` – `closedAt: null` = laufend |
+| `sessions` | `{ id, classId, startedAt, closedAt, log }` – `closedAt: null` = laufend, `log` = Klassenbucheintrag |
 | `grades` | `{ id, sessionId, classId, studentId, value, comment, absent, weight, createdAt }` |
 | `conferences` | `{ id, classId, title, from, to, createdAt }` |
 | `conferenceEntries` | `{ id: <conferenceId>~<studentId>, conferenceId, classId, studentId, grade, tendency, notes, done, doneAt, updatedAt }` |

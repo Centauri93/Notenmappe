@@ -14,7 +14,7 @@
  *
  * @typedef {{id: string, name: string, seating: Record<string, {x:number,y:number}>, cardScale?: number, archivedAt?: number|null, createdAt: number}} Klasse
  * @typedef {{id: string, classId: string, firstName: string, lastName: string, photo: Blob|null, createdAt: number}} Schueler
- * @typedef {{id: string, classId: string, startedAt: number, closedAt: number|null}} Session
+ * @typedef {{id: string, classId: string, startedAt: number, closedAt: number|null, log?: string}} Session
  * @typedef {{id: string, sessionId: string, classId: string, studentId: string, value: number|null, comment: string, absent?: boolean, weight?: number, createdAt: number, updatedAt?: number}} Note
  */
 
@@ -334,13 +334,26 @@ export async function closeSession(classId) {
   const open = await findOpenSession(classId);
   if (!open) return { closed: false, discarded: false, count: 0 };
   const grades = await listGradesOfSession(open.id);
-  if (grades.length === 0) {
+  // Eine Stunde nur mit Klassenbucheintrag (ohne Noten) bleibt erhalten
+  if (grades.length === 0 && !(open.log || '').trim()) {
     await del('sessions', open.id);
     return { closed: false, discarded: true, count: 0 };
   }
   open.closedAt = Date.now();
   await put('sessions', open);
   return { closed: true, discarded: false, count: grades.length };
+}
+
+/**
+ * Klassenbucheintrag der Stunde – Freitext, was im Unterricht gemacht wurde.
+ * Hat nichts mit Noten oder Auswertungen zu tun und wird nirgends verrechnet.
+ */
+export async function saveSessionLog(sessionId, text) {
+  const session = await get('sessions', sessionId);
+  if (!session) throw new Error('Stunde nicht gefunden');
+  session.log = (text || '').trim();
+  await put('sessions', session);
+  return session;
 }
 
 /* -------------------------------------------------------- Ver-/Entschlüsseln: Noten */
