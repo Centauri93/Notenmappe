@@ -276,7 +276,7 @@ a { color: inherit; text-decoration: none; }
   font: inherit;
 }
 
-.textarea { min-height: 90px; resize: vertical; }
+.textarea { min-height: 90px; max-width: 100%; resize: vertical; }
 .input:focus, .textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
 .input--date { min-width: 10rem; }
 
@@ -415,16 +415,22 @@ a { color: inherit; text-decoration: none; }
   inset: 0;
   z-index: 60;
   display: grid;
-  place-items: center;
-  padding: 1rem;
+  align-items: center;
+  justify-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   background: rgba(12, 18, 26, .5);
   backdrop-filter: blur(2px);
   overflow: auto;
 }
 
 .modal {
-  width: min(540px, 100%);
-  max-height: min(90vh, 900px);
+  /* Feste Wunschbreite, aber nie breiter als der Bildschirm – auf jedem
+     Gerät passt der Inhalt dann in den Rahmen, statt rechts abgeschnitten zu werden */
+  width: 100%;
+  max-width: 540px;
+  min-width: 0;
+  max-height: min(90dvh, 900px);
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -433,7 +439,10 @@ a { color: inherit; text-decoration: none; }
   animation: pop .16s ease-out;
 }
 
-.modal--wide { width: min(860px, 100%); }
+.modal--wide { max-width: 860px; }
+
+/* Kinder dürfen den Rahmen nie sprengen (Flex-Standard wäre min-width: auto) */
+.modal > * { min-width: 0; max-width: 100%; }
 
 @keyframes pop { from { transform: translateY(8px) scale(.98); opacity: 0; } }
 
@@ -447,7 +456,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .modal__title { font-size: 1.1rem; }
-.modal__body { padding: 1.2rem; overflow: auto; }
+.modal__body { padding: 1.2rem; overflow-y: auto; overflow-x: hidden; }
 .modal__text { color: var(--text-muted); }
 
 .modal__foot {
@@ -771,16 +780,23 @@ body.seating-fullscreen .seating-canvas {
 .grade-dialog__head { display: flex; align-items: center; gap: 1rem; }
 .grade-dialog__name { display: block; font-size: 1.1rem; }
 
+.grade-dialog { min-width: 0; }
+.grade-dialog > * { min-width: 0; }
+
 .grade-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* minmax(0, 1fr): Spalten teilen die Breite wirklich gleich, auch wenn
+     der Inhalt (große Ziffer) eigentlich mehr Platz verlangen würde */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .6rem;
 }
 
-@media (min-width: 560px) { .grade-grid { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 560px) { .grade-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 .grade-btn {
-  min-height: 76px;
+  min-width: 0;
+  padding: 0;
+  min-height: clamp(56px, 9vh, 76px);
   border: 2px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
@@ -809,7 +825,7 @@ body.seating-fullscreen .seating-canvas {
 .grade-btn.is-active[data-value="6"] { border-color: var(--g6); background: color-mix(in srgb, var(--g6) 16%, var(--surface)); }
 
 /* Fehlt / Mehrfachwertung */
-.state-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.state-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .6rem; }
 @media (max-width: 460px) { .state-row { grid-template-columns: 1fr; } }
 
 .state-btn { font-weight: 650; }
