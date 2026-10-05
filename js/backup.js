@@ -19,15 +19,14 @@ import * as security from './security.js';
 
 export const BACKUP_FORMAT = 'noten-app-backup';
 /**
- * Das Dateiformat ist mit der ursprünglichen Notenmappe (Versionen 1–3)
- * kompatibel: Sicherungen der alten App lassen sich hier einlesen, dabei
- * werden nur Klassen, Schüler:innen, Stunden und mündliche Noten übernommen –
- * Klassenarbeiten und Notenbesprechungen gibt es in dieser Version nicht
- * mehr und werden stillschweigend übersprungen.
+ * Version 4 = Notenmappe 2 mit Besprechungen. Sicherungen der ursprünglichen
+ * Notenmappe (Versionen 1–3) lassen sich einlesen: Klassen, Schüler:innen,
+ * Stunden und mündliche Noten werden übernommen; deren Klassenarbeiten und
+ * (anders aufgebaute) Besprechungen werden übersprungen.
  */
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 
-const STORES = ['classes', 'students', 'sessions', 'grades'];
+const STORES = ['classes', 'students', 'sessions', 'grades', 'conferences', 'conferenceEntries'];
 
 /* -------------------------------------------------------------- Verschlüsselte Hülle */
 
@@ -77,9 +76,11 @@ async function readEnvelope(file) {
 
 /** @returns {Promise<Blob>} */
 export async function exportBackup() {
-  const [classes, sessions] = await Promise.all([getAll('classes'), getAll('sessions')]);
+  const [classes, sessions, conferences] = await Promise.all(
+    [getAll('classes'), getAll('sessions'), getAll('conferences')]);
   const students = await store.listAllStudents();
   const grades = await store.listAllGrades();
+  const conferenceEntries = await store.listAllConferenceEntries();
 
   /** @type {{name: string, data: Uint8Array}[]} */
   const files = [];
@@ -104,11 +105,14 @@ export async function exportBackup() {
       students: students.length,
       sessions: sessions.length,
       grades: grades.length,
+      conferences: conferences.length,
     },
     classes,
     students: plainStudents,
     sessions,
     grades,
+    conferences,
+    conferenceEntries,
   };
 
   files.unshift({
@@ -211,7 +215,21 @@ export async function applyBackup({ payload, photos }, mode) {
     gradeRows.push(protectedDevice ? await store.encryptGradeWithKey(key, plain) : plain);
   }
 
-  // Klassenarbeiten und Notenbesprechungen aus alten Sicherungen werden ignoriert.
+  // Besprechungen gibt es erst ab Version 4; ältere (anders aufgebaute) werden übersprungen
+  const isV4 = Number(payload.version) >= 4;
+  const conferences = isV4 ? (payload.conferences || []) : [];
+  const entryRows = [];
+  if (isV4) {
+    for (const e of payload.conferenceEntries || []) {
+      const plain = {
+        id: e.id, conferenceId: e.conferenceId, classId: e.classId, studentId: e.studentId,
+        updatedAt: e.updatedAt || 0, done: Boolean(e.done), doneAt: e.doneAt ?? null,
+        grade: e.grade ?? null, tendency: ['+', '-'].includes(e.tendency) ? e.tendency : '',
+        notes: e.notes || '',
+      };
+      entryRows.push(await store.toConferenceEntryRow(plain, key));
+    }
+  }
 
   await tx(STORES, 'readwrite', (t) => {
     if (mode === 'replace') {
@@ -221,6 +239,8 @@ export async function applyBackup({ payload, photos }, mode) {
     for (const row of studentRows) t.objectStore('students').put(row);
     for (const session of payload.sessions || []) t.objectStore('sessions').put(session);
     for (const row of gradeRows) t.objectStore('grades').put(row);
+    for (const c of conferences) t.objectStore('conferences').put(c);
+    for (const row of entryRows) t.objectStore('conferenceEntries').put(row);
     return Promise.resolve();
   });
 }
@@ -237,7 +257,8 @@ export async function wipeAll() {
 
 /** Zahlen für die Übersicht in den Einstellungen. */
 export async function stats() {
-  const [classes, sessions] = await Promise.all([getAll('classes'), getAll('sessions')]);
+  const [classes, sessions, conferences] = await Promise.all(
+    [getAll('classes'), getAll('sessions'), getAll('conferences')]);
   const students = await store.listAllStudents();
   const grades = await store.listAllGrades();
   const photoBytes = students.reduce((sum, s) => sum + (s.photo?.size || 0), 0);
@@ -247,6 +268,7 @@ export async function stats() {
     sessions: sessions.filter((s) => s.closedAt !== null).length,
     openSessions: sessions.filter((s) => s.closedAt === null).length,
     grades: grades.length,
+    conferences: conferences.length,
     photoBytes,
   };
 }

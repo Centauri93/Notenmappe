@@ -1,9 +1,9 @@
 # Notenmappe 2
 
 Abgespeckte zweite Version der Notenmappe: **nur mündliche Noten** – Sitzplan,
-Noteneingabe per Antippen, Bemerkungen, Durchschnitte, PDF-Ausdruck und
-Datensicherung. Klassenarbeiten und Notenbesprechungen aus der ersten Version
-gibt es hier nicht mehr.
+Noteneingabe per Antippen, Bemerkungen, Durchschnitte, Notenbesprechung,
+PDF-Ausdruck und Datensicherung. Klassenarbeiten aus der ersten Version gibt
+es hier nicht mehr.
 
 **Alle Daten bleiben auf dem Gerät.** Kein Server, kein Login, keine Cloud,
 keine externen Bibliotheken. Die App funktioniert vollständig offline.
@@ -52,6 +52,7 @@ CSS und ES-Modulen.
 | **Schüler:innen** | Namen und Fotos pflegen (Datei oder Kamera), ganze Klasse per Foto-Import anlegen |
 | **Sitzplan** | Karten frei verschieben, antippen zum Benoten, Stunde beenden |
 | **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF, leere Klassenliste |
+| **Besprechung** | Notenbesprechungen anlegen, Klasse über den Sitzplan durchgehen, Endnote und Notizen, PDF |
 | **Einstellungen** | Passwortschutz, Sicherung exportieren/importieren, Daten löschen |
 
 ### Stundenablauf
@@ -145,6 +146,29 @@ Kästchen; die Kopfzeile ist leer und 30 mm hoch, damit man Überschriften schr�
 und Datum; die Zeilen sind so hoch wie das Foto, 13 je Seite, größere
 Klassen laufen mit wiederholter Kopfzeile auf die nächste Seite.
 
+## Notenbesprechung
+
+Der Reiter **Besprechung** begleitet das Gespräch mit einzelnen Schüler:innen.
+
+1. **Anlegen:** Bezeichnung und Zeitraum (vorbelegt: alle Stunden). Die
+   Übersicht zeigt je Besprechung den Fortschritt als Ring.
+2. **Sitzplan:** Karten an den gewohnten Plätzen mit Durchschnitt und – sobald
+   vergeben – der Endnote; besprochene Karten sind grün mit ✓. Antippen öffnet
+   die Schüler:in.
+3. **Schülerseite** (Tablet quer: zwei Spalten): links alle Einzelnoten des
+   Zeitraums mit Bemerkungen – jede antippbar und bearbeitbar, die Änderung
+   gilt für die ganze Notenmappe –, darunter der rechnerische Durchschnitt.
+   Rechts die **Endnote Sonstige Leistungen** (1–6, optional + / −) und das
+   Notizfeld; alles speichert sich selbst. „Vorige / Nächste“ führt durch die
+   Klasse, **„✓ Besprechung abschließen“** markiert und springt weiter.
+4. **PDF:** gleiches doppelseitiges Blatt wie der Notenbericht, aber die
+   Endnote steht groß im Notenkasten, der rechnerische Durchschnitt entfällt,
+   die digitalen Notizen stehen unter „Notizen“ (Rest wird mit Linien
+   aufgefüllt). Für die ganze Klasse oder einzeln.
+
+Löschen einer Besprechung entfernt nur Endnoten und Notizen – die
+Einzelnoten der Stunden bleiben.
+
 ## Sicherung
 
 *Einstellungen → Sicherung exportieren* erzeugt `noten-sicherung-JJJJ-MM-TT.zip`
@@ -158,7 +182,7 @@ sind die Noten weg.
 
 Sicherungen der **ersten Notenmappe** lassen sich hier einlesen: Klassen,
 Schüler:innen, Fotos, Stunden und mündliche Noten werden übernommen,
-Klassenarbeiten und Notenbesprechungen stillschweigend übersprungen.
+Klassenarbeiten und die (anders aufgebauten) Besprechungen übersprungen.
 
 ## Passwortschutz
 
@@ -187,7 +211,7 @@ js/
   dnd.js                 Drag & Drop über Pointer-Events (Touch + Maus)
   ui.js                  DOM-Helfer, Modal, Toast, Formatierung
   app.js                 Hash-Router
-  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Eintrags-Dialog, Bericht, leere Liste, Einstellungen, Sperre
+  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Eintrags-Dialog, Besprechung, Bericht, leere Liste, Einstellungen, Sperre
 ```
 
 ### Datenmodell (IndexedDB, Datenbank `notenmappe-2`)
@@ -198,6 +222,8 @@ js/
 | `students` | `{ id, classId, firstName, lastName, photoBytes: ArrayBuffer, createdAt }` – nach außen als `photo: Blob` |
 | `sessions` | `{ id, classId, startedAt, closedAt }` – `closedAt: null` = laufend |
 | `grades` | `{ id, sessionId, classId, studentId, value, comment, absent, weight, createdAt }` |
+| `conferences` | `{ id, classId, title, from, to, createdAt }` |
+| `conferenceEntries` | `{ id: <conferenceId>~<studentId>, conferenceId, classId, studentId, grade, tendency, notes, done, doneAt, updatedAt }` |
 | `meta` | Einstellungen (z.B. Passwortschutz) |
 
 `value: null` = Eintrag ohne Note, `absent: true` = fehlt, `weight: 2|3|5` =

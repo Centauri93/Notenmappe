@@ -101,9 +101,10 @@ export function resultBlock({ label, value, note }) {
  * bewusst nicht daneben, sondern unauffällig unter der Tabelle
  * (siehe gradesFoot), damit die Zahl nicht als „fertige“ Note wirkt.
  */
-export function finalGradeBox() {
+export function finalGradeBox(label = null) {
   return el('div.sheet__final-box', { 'aria-label': 'Feld für die Endnote' }, [
     el('span.sheet__final-label', { text: 'Note' }),
+    label ? el('span.sheet__final-value', { text: label }) : null,
   ]);
 }
 
@@ -167,18 +168,18 @@ export function gradesTable(grades) {
  * Fußzeile unter den Einzelnoten: links Anzahl und Art der Mittelung,
  * rechts der rechnerische Durchschnitt – klein, als Information.
  */
-export function gradesFoot(stats, printed) {
+export function gradesFoot(stats, printed, { showAverage = true } = {}) {
   const how = stats.hasBoost
     ? 'gewichteter Durchschnitt (Mehrfachwertung zählt entsprechend oft)'
     : 'einfacher Durchschnitt';
   return el('footer.sheet__foot', {}, [
     el('div.sheet__foot-left', {}, [
-      el('span', { text: `${stats.count} Einzelnote(n) · ${how}` }),
+      el('span', { text: showAverage ? `${stats.count} Einzelnote(n) · ${how}` : `${stats.count} Einzelnote(n)` }),
       printed ? el('span', { text: `Ausdruck vom ${printed}` }) : null,
     ]),
-    el('div.sheet__avg', {}, [
+    showAverage ? el('div.sheet__avg', {}, [
       el('span.sheet__avg-label', { text: 'Rechnerischer Durchschnitt' }),
       el('strong.sheet__avg-value', { text: stats.count ? store.formatAverage(stats.average) : '–' }),
-    ]),
+    ]) : null,
   ]);
 }

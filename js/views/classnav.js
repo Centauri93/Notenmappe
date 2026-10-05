@@ -4,7 +4,7 @@ import { el } from '../ui.js';
 
 /**
  * @param {{id: string, name: string}} cls
- * @param {'seating'|'students'|'table'} active
+ * @param {'seating'|'students'|'table'|'conferences'} active
  * @param {(Node|null)[]} [actions]  zusätzliche Bedienelemente rechts
  */
 export function classHeader(cls, active, actions = []) {
@@ -23,6 +23,7 @@ export function classHeader(cls, active, actions = []) {
         tab('seating', 'Sitzplan'),
         tab('students', 'Schüler:innen'),
         tab('table', 'Noten'),
+        tab('conferences', 'Besprechung'),
       ]),
     ]),
     el('div.page-head__actions', {}, actions.filter(Boolean)),

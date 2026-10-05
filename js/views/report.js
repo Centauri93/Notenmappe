@@ -39,8 +39,16 @@ const LINE_HEIGHT_REM = 2;
  *   range: {from: number, to: number},
  * }} opts
  */
-export async function openReport({ cls, students, scope, range }) {
+export async function openReport({ cls, students, scope, range, conference = null }) {
   const { rangeLabel, gradesOf, printed } = await loadReportData({ cls, range });
+
+  /*
+   * Mit Besprechung: Die dort festgelegte Endnote steht im Notenkasten, der
+   * rechnerische Durchschnitt entfällt, die digitalen Notizen stehen unter
+   * „Notizen“ – der Rest wird wie gewohnt mit Linien aufgefüllt.
+   */
+  const entries = conference ? await store.listConferenceEntries(conference.id) : [];
+  const entryOf = (studentId) => entries.find((e) => e.studentId === studentId) || null;
 
   const preview = openPrintPreview({
     title: scope === 'class'
@@ -54,7 +62,13 @@ export async function openReport({ cls, students, scope, range }) {
   for (const student of students) {
     const grades = gradesOf(student.id);
     const stats = store.average(grades);
-    const pages = layoutStudent({ host, student, cls, rangeLabel, grades, stats, printed });
+    const entry = conference ? entryOf(student.id) : null;
+    const pages = layoutStudent({
+      host, student, cls, rangeLabel, grades, stats, printed,
+      finalLabel: conference ? store.finalGradeLabel(entry) : null,
+      notesText: conference ? (entry?.notes || '') : '',
+      showAverage: !conference,
+    });
     pages.forEach((page, i) => page.append(pageFoot(student, i + 1, pages.length)));
   }
 }
@@ -66,32 +80,32 @@ export async function openReport({ cls, students, scope, range }) {
  * was auf eine Seite passt.
  * @returns {HTMLElement[]} die erzeugten Seiten
  */
-function layoutStudent({ host, student, cls, rangeLabel, grades, stats, printed }) {
+function layoutStudent({ host, student, cls, rangeLabel, grades, stats, printed, finalLabel = null, notesText = '', showAverage = true }) {
   const pages = [];
   const rows = grades.length ? grades.map(gradeRow) : [emptyGradesRow()];
 
   // Vorderseite: Kopf, Abschnittstitel mit Notenfeld, Tabelle
-  let { page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: true });
+  let { page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: true, finalLabel });
   pages.push(page);
 
   for (const row of rows) {
     tbody.append(row);
     if (overflows(page)) {
       row.remove();
-      ({ page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: false }));
+      ({ page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: false, finalLabel }));
       pages.push(page);
       tbody.append(row);
     }
   }
 
   // Fuß und Fußnote unter die letzte Tabellenzeile – notfalls auf die nächste Seite
-  const tail = el('div.sheet__tail', {}, [gradesFoot(stats, printed), gradingNote()]);
+  const tail = el('div.sheet__tail', {}, [gradesFoot(stats, printed, { showAverage }), gradingNote()]);
   section.append(tail);
   if (overflows(page)) {
     tail.remove();
     // Letzte Zeile mitnehmen, damit Fuß und Tabelle zusammenbleiben
     const lastRow = tbody.lastElementChild;
-    ({ page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: false }));
+    ({ page, tbody, section } = newContentPage({ host, student, cls, rangeLabel, first: false, finalLabel }));
     pages.push(page);
     if (lastRow && rows.length > 1) tbody.append(lastRow);
     section.append(tail);
@@ -104,17 +118,36 @@ function layoutStudent({ host, student, cls, rangeLabel, grades, stats, printed 
     pages.push(extra);
   }
 
-  // Jede Seite bis zum Ende mit Notizlinien auffüllen
-  for (const p of pages) fillNotes(p);
+  // Jede Seite bis zum Ende mit Notizlinien auffüllen; digitale Notizen auf die erste Seite mit Platz
+  let pending = notesText;
+  for (const p of pages) {
+    const placed = fillNotes(p, pending);
+    if (placed) pending = '';
+  }
+  // Passen die Notizen auf keine Seite mehr: eigene Seiten anhängen (gerade Zahl bleibt)
+  if (pending) {
+    const extra = el('section.sheet', {}, [continuationHead({ student, cls, rangeLabel })]);
+    host.append(extra); pages.push(extra);
+    if (!fillNotes(extra, pending)) {
+      // Länger als eine ganze Seite: notgedrungen abschneiden, statt endlos Seiten zu erzeugen
+      extra.append(el('section.sheet__notes', {}, [
+        el('h2.sheet__section-title', { text: 'Notizen' }),
+        el('p.sheet__notes-text', { text: pending }),
+      ]));
+    }
+    const pad = el('section.sheet', {}, [continuationHead({ student, cls, rangeLabel })]);
+    host.append(pad); pages.push(pad);
+    fillNotes(pad, '');
+  }
   return pages;
 }
 
 /** Neue Seite mit Kopf und (leerer) Notentabelle. */
-function newContentPage({ host, student, cls, rangeLabel, first }) {
+function newContentPage({ host, student, cls, rangeLabel, first, finalLabel = null }) {
   const tbody = el('tbody');
   const section = el('section.sheet__section', {}, [
     first
-      ? sectionHead('Sonstige Leistungen', finalGradeBox())
+      ? sectionHead('Sonstige Leistungen', finalGradeBox(finalLabel))
       : sectionHead('Sonstige Leistungen (Fortsetzung)'),
     el('table.sheet__table', {}, [gradesTableHead(), tbody]),
   ]);
@@ -126,15 +159,32 @@ function newContentPage({ host, student, cls, rangeLabel, first }) {
   return { page, tbody, section };
 }
 
-/** Füllt den Rest der Seite mit Notizlinien, ohne dass die Seite überläuft. */
-function fillNotes(page) {
+/**
+ * Füllt den Rest der Seite mit Notizlinien, ohne dass die Seite überläuft.
+ * Mit `text` werden zuerst die digitalen Notizen gesetzt; passen sie nicht,
+ * kommen sie nicht auf diese Seite (Rückgabe false).
+ * @returns {boolean} ob der Text untergebracht wurde (ohne Text: true)
+ */
+function fillNotes(page, text = '') {
   const lines = el('div.sheet__lines', { 'aria-hidden': 'true' });
+  const textEl = text ? el('p.sheet__notes-text', { text }) : null;
   const notes = el('section.sheet__notes.sheet__notes--fill', {}, [
     el('h2.sheet__section-title', { text: 'Notizen' }),
+    textEl,
     lines,
   ]);
   page.append(notes);
+  if (textEl && overflows(page)) {
+    // Text passt hier nicht – Seite nur mit Linien füllen, Text auf die nächste
+    textEl.remove();
+    fillLines(page, notes, lines);
+    return false;
+  }
+  fillLines(page, notes, lines);
+  return true;
+}
 
+function fillLines(page, notes, lines) {
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   const lineHeight = LINE_HEIGHT_REM * rem;
   const count = Math.max(0, Math.floor(lines.getBoundingClientRect().height / lineHeight));
@@ -144,7 +194,8 @@ function fillNotes(page) {
   while (overflows(page) && lines.lastElementChild) lines.lastElementChild.remove();
 
   // Eine randvolle Seite bekommt kein Notizfeld mit nur ein, zwei Linien
-  if (overflows(page) || lines.childElementCount < 2) notes.remove();
+  const hasText = Boolean(notes.querySelector('.sheet__notes-text'));
+  if (overflows(page) || (lines.childElementCount < 2 && !hasText)) notes.remove();
 }
 
 /** Seitenzahl unten – hilft beim Sortieren nach dem Druck. */

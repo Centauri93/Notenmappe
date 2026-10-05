@@ -6,7 +6,7 @@
  */
 
 // Version bei jeder Code-Änderung erhöhen – dadurch lädt die App frisch.
-const CACHE = 'notenmappe2-v17';
+const CACHE = 'notenmappe2-v19';
 
 const SHELL = [
   './',
@@ -34,6 +34,8 @@ const SHELL = [
   './js/views/report.js',
   './js/views/blanklist.js',
   './js/views/gradedialog.js',
+  './js/views/conferences.js',
+  './js/views/conferencestudent.js',
   './js/views/settings.js',
   './js/views/lock.js',
   './icons/icon-192.png',

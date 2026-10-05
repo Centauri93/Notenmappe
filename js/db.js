@@ -5,7 +5,7 @@
 
 // Eigene Datenbank für Notenmappe 2 – unabhängig von der alten „noten-app“.
 const DB_NAME = 'notenmappe-2';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /** @type {IDBDatabase|null} */
 let _db = null;
@@ -43,6 +43,20 @@ export function openDB() {
 
         // Freie Schlüssel/Wert-Ablage für Einstellungen
         db.createObjectStore('meta', { keyPath: 'key' });
+      }
+
+      if (oldVersion < 2) {
+        // Notenbesprechungen – rein ergänzend, Version-1-Daten bleiben unverändert.
+        // Besprechung: { id, classId, title, from, to, createdAt }
+        const conferences = db.createObjectStore('conferences', { keyPath: 'id' });
+        conferences.createIndex('byClass', 'classId');
+
+        // Ergebnis je Schüler:in: { id: <conferenceId>~<studentId>, conferenceId, classId,
+        //   studentId, grade, tendency, notes, done, doneAt, updatedAt }
+        const entries = db.createObjectStore('conferenceEntries', { keyPath: 'id' });
+        entries.createIndex('byConference', 'conferenceId');
+        entries.createIndex('byStudent', 'studentId');
+        entries.createIndex('byClass', 'classId');
       }
     };
 

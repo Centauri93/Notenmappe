@@ -9,6 +9,8 @@ import { renderClasses } from './views/classes.js';
 import { renderStudents } from './views/students.js';
 import { renderSeating } from './views/seating.js';
 import { renderTable } from './views/table.js';
+import { renderConferences, renderConference } from './views/conferences.js';
+import { renderConferenceStudent } from './views/conferencestudent.js';
 import { renderSettings } from './views/settings.js';
 
 const app = document.getElementById('app');
@@ -20,6 +22,15 @@ const routes = [
   { pattern: /^#\/class\/([^/]+)\/students$/, run: (root, id) => renderStudents(root, id) },
   { pattern: /^#\/class\/([^/]+)\/seating$/, run: (root, id) => renderSeating(root, id) },
   { pattern: /^#\/class\/([^/]+)\/table$/, run: (root, id) => renderTable(root, id) },
+  { pattern: /^#\/class\/([^/]+)\/conferences$/, run: (root, id) => renderConferences(root, id) },
+  {
+    pattern: /^#\/class\/([^/]+)\/conference\/([^/]+)$/,
+    run: (root, id, confId) => renderConference(root, id, confId),
+  },
+  {
+    pattern: /^#\/class\/([^/]+)\/conference\/([^/]+)\/([^/]+)$/,
+    run: (root, id, confId, studentId) => renderConferenceStudent(root, id, confId, studentId),
+  },
   { pattern: /^#\/settings$/, run: (root) => renderSettings(root) },
 ];
 

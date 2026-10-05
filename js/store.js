@@ -58,9 +58,9 @@ export async function renameClass(id, name) {
   return put('classes', cls);
 }
 
-/** Löscht Klasse inkl. Schüler:innen, Stunden und Noten. */
+/** Löscht Klasse inkl. Schüler:innen, Stunden, Noten und Besprechungen. */
 export async function deleteClass(id) {
-  const stores = ['classes', 'students', 'sessions', 'grades'];
+  const stores = ['classes', 'students', 'sessions', 'grades', 'conferences', 'conferenceEntries'];
   return tx(stores, 'readwrite', async (t) => {
     await reqAsPromise(t.objectStore('classes').delete(id));
     for (const store of stores.slice(1)) {
@@ -222,9 +222,9 @@ export async function updateStudent(id, patch) {
  */
 export async function deleteStudent(id) {
   const student = await getStudent(id);
-  await tx(['students', 'grades'], 'readwrite', async (t) => {
+  await tx(['students', 'grades', 'conferenceEntries'], 'readwrite', async (t) => {
     await reqAsPromise(t.objectStore('students').delete(id));
-    for (const store of ['grades']) {
+    for (const store of ['grades', 'conferenceEntries']) {
       const keys = await reqAsPromise(
         t.objectStore(store).index('byStudent').getAllKeys(IDBKeyRange.only(id)));
       for (const key of keys) await reqAsPromise(t.objectStore(store).delete(key));
@@ -484,6 +484,152 @@ export function formatAverage(avg) {
   return avg.toFixed(1).replace('.', ',');
 }
 
+/* ------------------------------------------------------ Besprechungen */
+
+/**
+ * @typedef {{id: string, classId: string, title: string, from: number, to: number, createdAt: number}} Besprechung
+ * @typedef {{id: string, conferenceId: string, classId: string, studentId: string,
+ *            grade: number|null, tendency: ''|'+'|'-', notes: string,
+ *            done: boolean, doneAt: number|null, updatedAt: number}} BesprechungsEintrag
+ */
+
+/** @returns {Promise<Besprechung[]>} */
+export async function listConferences(classId) {
+  const rows = await getAllByIndex('conferences', 'byClass', IDBKeyRange.only(classId));
+  return rows.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/** @returns {Promise<Besprechung|undefined>} */
+export function getConference(id) {
+  return get('conferences', id);
+}
+
+export function createConference({ classId, title, from, to }) {
+  return put('conferences', {
+    id: newId(),
+    classId,
+    title: (title || '').trim() || 'Notenbesprechung',
+    from, to,
+    createdAt: Date.now(),
+  });
+}
+
+export async function updateConference(id, patch) {
+  const c = await get('conferences', id);
+  if (!c) throw new Error('Besprechung nicht gefunden');
+  if (patch.title !== undefined) c.title = (patch.title || '').trim() || c.title;
+  if (patch.from !== undefined) c.from = patch.from;
+  if (patch.to !== undefined) c.to = patch.to;
+  await put('conferences', c);
+  return c;
+}
+
+/** Löscht die Besprechung samt Einträgen – die Einzelnoten bleiben unberührt. */
+export async function deleteConference(id) {
+  await tx(['conferences', 'conferenceEntries'], 'readwrite', async (t) => {
+    await reqAsPromise(t.objectStore('conferences').delete(id));
+    const keys = await reqAsPromise(
+      t.objectStore('conferenceEntries').index('byConference').getAllKeys(IDBKeyRange.only(id)));
+    for (const key of keys) await reqAsPromise(t.objectStore('conferenceEntries').delete(key));
+  });
+}
+
+/*
+ * Verschlüsselung: Endnote und Notizen sind personenbezogen und werden bei
+ * aktivem Schutz wie die Noten verschlüsselt abgelegt.
+ */
+export async function encryptConferenceEntryWithKey(key, plain) {
+  const { id, conferenceId, classId, studentId, updatedAt, done, doneAt, grade, tendency, notes } = plain;
+  const enc = await security.encryptJSONWithKey(key, { grade, tendency, notes });
+  return { id, conferenceId, classId, studentId, updatedAt, done, doneAt, enc };
+}
+
+async function decryptConferenceEntryWithKey(key, row) {
+  if (!row || !row.enc) return row;
+  const { grade, tendency, notes } = await security.decryptJSONWithKey(key, row.enc);
+  return {
+    id: row.id, conferenceId: row.conferenceId, classId: row.classId, studentId: row.studentId,
+    updatedAt: row.updatedAt, done: row.done, doneAt: row.doneAt, grade, tendency, notes,
+  };
+}
+
+export async function toConferenceEntryRow(plain, key = null) {
+  if (key) return encryptConferenceEntryWithKey(key, plain);
+  if (!(await security.isConfigured())) return plain;
+  return encryptConferenceEntryWithKey(security.getActiveKey(), plain);
+}
+
+function fromConferenceEntryRow(row) {
+  if (!row || !row.enc) return row;
+  return decryptConferenceEntryWithKey(security.getActiveKey(), row);
+}
+
+/** Feste Kennung je Besprechung und Schüler:in – schnelle Klicks können so keine Dubletten erzeugen. */
+export function conferenceEntryId(conferenceId, studentId) {
+  return `${conferenceId}~${studentId}`;
+}
+
+/** @returns {Promise<BesprechungsEintrag[]>} */
+export async function listConferenceEntries(conferenceId) {
+  const rows = await getAllByIndex('conferenceEntries', 'byConference', IDBKeyRange.only(conferenceId));
+  return Promise.all(rows.map(fromConferenceEntryRow));
+}
+
+export async function listAllConferenceEntries() {
+  const rows = await getAll('conferenceEntries');
+  return Promise.all(rows.map(fromConferenceEntryRow));
+}
+
+/** @returns {Promise<BesprechungsEintrag|null>} */
+export async function getConferenceEntry(conferenceId, studentId) {
+  const row = await get('conferenceEntries', conferenceEntryId(conferenceId, studentId));
+  return row ? fromConferenceEntryRow(row) : null;
+}
+
+/**
+ * Speichert einen Teil-Patch des Besprechungsergebnisses.
+ * `grade` 1–6 oder null, `tendency` '', '+' oder '-', `notes` Text, `done` Haken.
+ */
+export async function saveConferenceEntry({ conferenceId, classId, studentId, ...patch }) {
+  const existing = await getConferenceEntry(conferenceId, studentId);
+  /** @type {BesprechungsEintrag} */
+  const entry = existing || {
+    id: conferenceEntryId(conferenceId, studentId),
+    conferenceId, classId, studentId,
+    grade: null, tendency: '', notes: '', done: false, doneAt: null, updatedAt: 0,
+  };
+  if ('grade' in patch) {
+    const g = patch.grade === null || patch.grade === undefined ? null : Number(patch.grade);
+    if (g !== null && (!Number.isInteger(g) || g < 1 || g > 6)) throw new Error('Note muss zwischen 1 und 6 liegen');
+    entry.grade = g;
+    if (g === null) entry.tendency = '';
+  }
+  if ('tendency' in patch) entry.tendency = ['+', '-'].includes(patch.tendency) ? patch.tendency : '';
+  if ('notes' in patch) entry.notes = (patch.notes || '').trim();
+  if ('done' in patch) {
+    const next = Boolean(patch.done);
+    // Der Zeitpunkt hält fest, wann das Gespräch abgeschlossen wurde – nicht die letzte Änderung
+    if (next && !entry.done) entry.doneAt = Date.now();
+    if (!next) entry.doneAt = null;
+    entry.done = next;
+  }
+  // Tendenz nur mit Note; bei 1 kein „+“, bei 6 kein „−“
+  if (entry.grade === null) entry.tendency = '';
+  if (entry.grade === 1 && entry.tendency === '+') entry.tendency = '';
+  if (entry.grade === 6 && entry.tendency === '-') entry.tendency = '';
+
+  entry.updatedAt = Date.now();
+  await put('conferenceEntries', await toConferenceEntryRow(entry));
+  return entry;
+}
+
+/** „2+“, „3“, „4−“ – oder null ohne Note. */
+export function finalGradeLabel(entry) {
+  if (!entry || entry.grade === null || entry.grade === undefined) return null;
+  const t = entry.tendency === '-' ? '−' : (entry.tendency || '');
+  return `${entry.grade}${t}`;
+}
+
 /* ------------------------------------------------------- Datenpflege */
 
 /**
@@ -560,6 +706,7 @@ const SECRET_STORES = [
     decrypt: async (key, row) => plainToRow(await decryptStudentWithKey(key, row)),
   },
   { name: 'grades', encrypt: encryptGradeWithKey, decrypt: decryptGradeWithKey },
+  { name: 'conferenceEntries', encrypt: encryptConferenceEntryWithKey, decrypt: decryptConferenceEntryWithKey },
 ];
 
 /**

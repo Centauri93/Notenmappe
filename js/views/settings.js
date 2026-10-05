@@ -45,6 +45,7 @@ export async function renderSettings(root) {
         stat('Abgeschlossene Stunden', s.sessions),
         stat('Laufende Stunden', s.openSessions),
         stat('Einzelnoten', s.grades),
+        stat('Notenbesprechungen', s.conferences),
         stat('Fotos', formatBytes(s.photoBytes)),
       ]),
     ]),
@@ -254,6 +255,7 @@ export async function renderSettings(root) {
           el('li', { text: `${c.students ?? '?'} Schüler:innen (${data.photos.size} Fotos)` }),
           el('li', { text: `${c.sessions ?? '?'} Stunden` }),
           el('li', { text: `${c.grades ?? '?'} Einzelnoten` }),
+          el('li', { text: `${c.conferences ?? 0} Notenbesprechungen` }),
         ]),
         el('p.hint', {
           text: 'Ersetzen löscht die aktuellen Daten dieses Geräts vollständig. '
