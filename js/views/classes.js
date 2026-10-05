@@ -1,4 +1,4 @@
-/** Klassenübersicht: anlegen, umbenennen, löschen. */
+/** Klassenübersicht: anlegen, umbenennen, duplizieren, archivieren, löschen. */
 
 import * as store from '../store.js';
 import { el, clear, toast, confirmDialog, promptDialog, formatDate } from '../ui.js';
@@ -8,7 +8,8 @@ import { el, clear, toast, confirmDialog, promptDialog, formatDate } from '../ui
  */
 export async function renderClasses(root) {
   clear(root);
-  const classes = await store.listClasses();
+  const classes = await store.listClasses({ archived: false });
+  const archivedCount = (await store.listClasses({ archived: true })).length;
 
   root.append(
     el('div.page-head', {}, [
@@ -20,7 +21,12 @@ export async function renderClasses(root) {
             : 'Noch keine Klasse angelegt.',
         }),
       ]),
-      el('button.btn.btn--primary', { type: 'button', text: '+ Neue Klasse', onClick: () => addClass(root) }),
+      el('div.page-head__actions', {}, [
+        archivedCount
+          ? el('a.btn', { href: '#/archive', text: `🗄 Archiv (${archivedCount})` })
+          : null,
+        el('button.btn.btn--primary', { type: 'button', text: '+ Neue Klasse', onClick: () => addClass(root) }),
+      ]),
     ]),
   );
 
@@ -63,6 +69,11 @@ export async function renderClasses(root) {
           type: 'button', text: 'Duplizieren',
           title: 'Kopie mit allen Schüler:innen und Fotos – ohne Noten',
           onClick: () => duplicate(root, cls, students.length),
+        }),
+        el('button.btn.btn--ghost', {
+          type: 'button', text: 'Archivieren',
+          title: 'Aus der Übersicht nehmen – alle Daten bleiben erhalten',
+          onClick: () => archive(root, cls),
         }),
         el('button.btn.btn--ghost.btn--danger-ghost', {
           type: 'button', text: 'Löschen', onClick: () => remove(root, cls, students.length),
@@ -120,6 +131,12 @@ async function duplicate(root, cls, studentCount) {
   }
 }
 
+async function archive(root, cls) {
+  await store.setClassArchived(cls.id, true);
+  toast(`„${cls.name}“ archiviert – unter „Archiv“ jederzeit wieder erreichbar`);
+  renderClasses(root);
+}
+
 async function remove(root, cls, studentCount) {
   const ok = await confirmDialog({
     title: 'Klasse löschen?',
@@ -130,4 +147,85 @@ async function remove(root, cls, studentCount) {
   await store.deleteClass(cls.id);
   toast('Klasse gelöscht');
   renderClasses(root);
+}
+
+/* ------------------------------------------------------------------ Archiv */
+
+/**
+ * Archivierte Klassen als Tabelle: alles bleibt erhalten und lässt sich
+ * öffnen, wiederherstellen oder endgültig löschen.
+ */
+export async function renderArchive(root) {
+  clear(root);
+  const classes = (await store.listClasses({ archived: true }))
+    .sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
+
+  root.append(el('div.page-head', {}, [
+    el('div', {}, [
+      el('a.back-link', { href: '#/classes', text: '‹ Klassen' }),
+      el('h1.page-title', { text: 'Archiv' }),
+      el('p.page-sub', {
+        text: classes.length
+          ? `${classes.length} archivierte ${classes.length === 1 ? 'Klasse' : 'Klassen'} – alle Daten sind erhalten.`
+          : 'Keine archivierten Klassen.',
+      }),
+    ]),
+  ]));
+
+  if (!classes.length) {
+    root.append(el('div.empty', {}, [
+      el('p', { text: 'Archivierte Klassen erscheinen hier. Archivieren nimmt eine Klasse nur aus der Übersicht – Noten, Fotos und Besprechungen bleiben.' }),
+      el('a.btn.btn--primary', { href: '#/classes', text: 'Zur Klassenübersicht' }),
+    ]));
+    return;
+  }
+
+  const rows = [];
+  for (const cls of classes) {
+    const [students, sessions] = await Promise.all([store.listStudents(cls.id), store.listSessions(cls.id)]);
+    rows.push(el('tr', {}, [
+      el('td.archive__name', {}, [el('a.archive__link', { href: `#/class/${cls.id}/table`, text: cls.name })]),
+      el('td', { text: String(students.length) }),
+      el('td', { text: String(sessions.filter((s) => s.closedAt !== null).length) }),
+      el('td', { text: cls.archivedAt ? formatDate(cls.archivedAt) : '–' }),
+      el('td.archive__actions', {}, [
+        el('a.btn.btn--sm', { href: `#/class/${cls.id}/table`, text: 'Öffnen' }),
+        el('button.btn.btn--sm.btn--primary', {
+          type: 'button', text: 'Wiederherstellen',
+          onClick: async () => {
+            await store.setClassArchived(cls.id, false);
+            toast(`„${cls.name}“ ist wieder in der Übersicht`, 'success');
+            renderArchive(root);
+          },
+        }),
+        el('button.btn.btn--sm.btn--ghost.btn--danger-ghost', {
+          type: 'button', text: 'Löschen',
+          onClick: async () => {
+            const ok = await confirmDialog({
+              title: 'Klasse endgültig löschen?',
+              message: `„${cls.name}“ wird mit ${students.length} Schüler:in(nen), allen Fotos, Stunden, Noten und Besprechungen unwiderruflich gelöscht.`,
+              confirmLabel: 'Endgültig löschen',
+            });
+            if (!ok) return;
+            await store.deleteClass(cls.id);
+            toast('Klasse gelöscht');
+            renderArchive(root);
+          },
+        }),
+      ]),
+    ]));
+  }
+
+  root.append(el('div.table-wrap', {}, [
+    el('table.archive', {}, [
+      el('thead', {}, [el('tr', {}, [
+        el('th', { scope: 'col', text: 'Klasse' }),
+        el('th', { scope: 'col', text: 'Schüler:innen' }),
+        el('th', { scope: 'col', text: 'Stunden' }),
+        el('th', { scope: 'col', text: 'Archiviert am' }),
+        el('th', { scope: 'col', text: '' }),
+      ])]),
+      el('tbody', {}, rows),
+    ]),
+  ]));
 }

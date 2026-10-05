@@ -48,7 +48,7 @@ CSS und ES-Modulen.
 
 | Ansicht | Was man dort tut |
 | --- | --- |
-| **Klassen** | Klassen anlegen, umbenennen, duplizieren (für ein zweites Fach), löschen |
+| **Klassen** | Klassen anlegen, umbenennen, duplizieren (für ein zweites Fach), archivieren, löschen |
 | **Schüler:innen** | Namen und Fotos pflegen (Datei oder Kamera), ganze Klasse per Foto-Import anlegen |
 | **Sitzplan** | Karten frei verschieben, antippen zum Benoten, Stunde beenden |
 | **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF, leere Klassenliste |
@@ -63,6 +63,15 @@ dupliziert sie über die Klassenübersicht (**„Duplizieren"**, neuer Name, z.B
 Sitzordnung – keine Stunden, Noten oder Besprechungen. Die Kopie ist danach
 unabhängig: Änderungen an Schüler:innen oder Fotos gelten nur in der
 jeweiligen Klasse.
+
+### Klasse archivieren
+
+**„Archivieren“** nimmt eine Klasse aus der Übersicht, damit dort nur die
+aktuellen stehen. Alle Daten bleiben erhalten. Oben rechts erscheint dann
+**„🗄 Archiv (n)“** – dort liegen die archivierten Klassen als Tabelle mit
+Schülerzahl, Stundenzahl und Datum; jede lässt sich **öffnen** (alle
+Ansichten funktionieren, mit Hinweis „archiviert“), **wiederherstellen** oder
+endgültig löschen.
 
 ### Stundenablauf
 
@@ -227,7 +236,7 @@ js/
 
 | Store | Inhalt |
 | --- | --- |
-| `classes` | `{ id, name, seating: { [studentId]: {x, y} }, cardScale, createdAt }` |
+| `classes` | `{ id, name, seating: { [studentId]: {x, y} }, cardScale, archivedAt, createdAt }` |
 | `students` | `{ id, classId, firstName, lastName, photoBytes: ArrayBuffer, createdAt }` – nach außen als `photo: Blob` |
 | `sessions` | `{ id, classId, startedAt, closedAt }` – `closedAt: null` = laufend |
 | `grades` | `{ id, sessionId, classId, studentId, value, comment, absent, weight, createdAt }` |

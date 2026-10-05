@@ -18,7 +18,10 @@ export function classHeader(cls, active, actions = []) {
   return el('div.page-head.page-head--class', {}, [
     el('div.page-head__left', {}, [
       el('a.back-link', { href: '#/classes', text: '‹ Klassen' }),
-      el('h1.page-title', { text: cls.name }),
+      el('h1.page-title', {}, [
+        cls.name,
+        cls.archivedAt ? el('span.badge.badge--archived', { text: 'archiviert' }) : null,
+      ]),
       el('nav.tabs', {}, [
         tab('seating', 'Sitzplan'),
         tab('students', 'Schüler:innen'),

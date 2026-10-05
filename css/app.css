@@ -351,6 +351,18 @@ a { color: inherit; text-decoration: none; }
   background: var(--surface-2);
 }
 
+/* Archiv: schlichte Tabelle */
+.table-wrap { overflow-x: auto; }
+.archive { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.archive th, .archive td { padding: .7rem .8rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.archive th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); background: var(--surface-2); }
+.archive tr:last-child td { border-bottom: 0; }
+.archive__name { font-weight: 650; }
+.archive__link { color: inherit; text-decoration: none; }
+.archive__link:hover { text-decoration: underline; }
+.archive__actions { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+.badge--archived { margin-left: .6rem; vertical-align: middle; background: var(--surface-2); color: var(--text-muted); font-size: .7rem; }
+
 /* ----------------------------------------------------------- Schülerliste */
 
 .student-list { display: grid; gap: .5rem; }

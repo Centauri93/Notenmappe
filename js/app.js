@@ -5,7 +5,7 @@ import { el, clear, toast, closeAllOverlays } from './ui.js';
 import * as security from './security.js';
 import * as store from './store.js';
 import { renderLock } from './views/lock.js';
-import { renderClasses } from './views/classes.js';
+import { renderClasses, renderArchive } from './views/classes.js';
 import { renderStudents } from './views/students.js';
 import { renderSeating } from './views/seating.js';
 import { renderTable } from './views/table.js';
@@ -19,6 +19,7 @@ const lockBtn = document.getElementById('lock-btn');
 /** @type {{pattern: RegExp, run: (root: HTMLElement, ...args: string[]) => Promise<void>}[]} */
 const routes = [
   { pattern: /^#\/classes$/, run: (root) => renderClasses(root) },
+  { pattern: /^#\/archive$/, run: (root) => renderArchive(root) },
   { pattern: /^#\/class\/([^/]+)\/students$/, run: (root, id) => renderStudents(root, id) },
   { pattern: /^#\/class\/([^/]+)\/seating$/, run: (root, id) => renderSeating(root, id) },
   { pattern: /^#\/class\/([^/]+)\/table$/, run: (root, id) => renderTable(root, id) },

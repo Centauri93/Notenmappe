@@ -12,7 +12,7 @@
  * alle Funktionen liefern nach außen weiterhin die entschlüsselten Objekte,
  * genau wie ohne Passwortschutz.
  *
- * @typedef {{id: string, name: string, seating: Record<string, {x:number,y:number}>, cardScale?: number, createdAt: number}} Klasse
+ * @typedef {{id: string, name: string, seating: Record<string, {x:number,y:number}>, cardScale?: number, archivedAt?: number|null, createdAt: number}} Klasse
  * @typedef {{id: string, classId: string, firstName: string, lastName: string, photo: Blob|null, createdAt: number}} Schueler
  * @typedef {{id: string, classId: string, startedAt: number, closedAt: number|null}} Session
  * @typedef {{id: string, sessionId: string, classId: string, studentId: string, value: number|null, comment: string, absent?: boolean, weight?: number, createdAt: number, updatedAt?: number}} Note
@@ -30,9 +30,27 @@ import * as security from './security.js';
 /* ------------------------------------------------------------------ Klassen */
 
 /** @returns {Promise<Klasse[]>} */
-export async function listClasses() {
-  const rows = await getAll('classes');
+/**
+ * @param {{archived?: boolean}} [opts] – ohne Angabe alle Klassen; `archived: false`
+ *   nur aktive, `archived: true` nur archivierte.
+ * @returns {Promise<Klasse[]>}
+ */
+export async function listClasses(opts = {}) {
+  let rows = await getAll('classes');
+  if (opts.archived === true) rows = rows.filter((c) => c.archivedAt);
+  if (opts.archived === false) rows = rows.filter((c) => !c.archivedAt);
   return rows.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+
+/**
+ * Archivieren nimmt die Klasse nur aus der Übersicht – alle Daten bleiben
+ * und lassen sich jederzeit wieder hervorholen.
+ */
+export async function setClassArchived(id, archived) {
+  const cls = await getClass(id);
+  if (!cls) throw new Error('Klasse nicht gefunden');
+  cls.archivedAt = archived ? Date.now() : null;
+  return put('classes', cls);
 }
 
 /** @returns {Promise<Klasse|undefined>} */
