@@ -47,10 +47,15 @@ export async function renderSeating(root, classId) {
     type: 'button', text: '✓ Stunde beenden', onClick: () => finishLesson(),
   });
 
-  root.append(classHeader(cls, 'seating', [
-    el('button.btn', { type: 'button', text: '⌗ Anordnen', onClick: () => autoArrange() }),
-    closeBtn,
-  ]));
+  const arrangeBtn = el('button.btn', { type: 'button', text: '⌗ Anordnen', onClick: () => autoArrange() });
+  const fullscreenBtn = el('button.btn', {
+    type: 'button', text: '⛶ Vollbild', title: 'Sitzplan bildschirmfüllend anzeigen',
+    onClick: () => setFullscreen(!isFullscreen),
+  });
+
+  const header = classHeader(cls, 'seating', [arrangeBtn, fullscreenBtn, closeBtn]);
+  const headerActions = header.querySelector('.page-head__actions');
+  root.append(header);
 
   const canvas = el('div.seating-canvas', { id: 'seating-canvas' });
 
@@ -59,7 +64,7 @@ export async function renderSeating(root, classId) {
   let cardScale = cls.cardScale || 100;
   const scaleValue = el('span.zoom__value', { text: `${cardScale}%` });
   const scaleInput = el('input.zoom__slider', {
-    type: 'range', min: '60', max: '150', step: '5', value: String(cardScale),
+    type: 'range', min: '60', max: '200', step: '5', value: String(cardScale),
     'aria-label': 'Kartengröße im Sitzplan',
   });
   scaleInput.addEventListener('input', () => {
@@ -70,6 +75,8 @@ export async function renderSeating(root, classId) {
   });
   scaleInput.addEventListener('change', () => store.saveCardScale(classId, cardScale));
 
+  // Im Vollbild wandern die Knöpfe aus der Kopfzeile hier hinein
+  const statusActions = el('div.status__actions');
   const status = el('div.status', {}, [
     statusText,
     el('label.zoom', {}, [
@@ -77,9 +84,76 @@ export async function renderSeating(root, classId) {
       scaleInput,
       scaleValue,
     ]),
+    statusActions,
   ]);
   root.append(status, canvas);
   applyScale();
+
+  /* ---------------------------------------------------------- Vollbild */
+
+  /*
+   * Vollbild: Kopfzeile und Reiter verschwinden, die Sitzfläche füllt den
+   * ganzen Bildschirm – gedacht fürs iPad im Unterricht. Auf Geräten, die
+   * es erlauben, wird zusätzlich der Browser-Rahmen ausgeblendet.
+   */
+  let isFullscreen = false;
+
+  function setFullscreen(on) {
+    if (on === isFullscreen) return;
+    isFullscreen = on;
+    document.body.classList.toggle('seating-fullscreen', on);
+    fullscreenBtn.textContent = on ? '✕ Vollbild beenden' : '⛶ Vollbild';
+    if (on) {
+      statusActions.append(arrangeBtn, fullscreenBtn, closeBtn);
+      canvas.style.maxHeight = '';
+      requestBrowserFullscreen();
+    } else {
+      headerActions.append(arrangeBtn, fullscreenBtn, closeBtn);
+      exitBrowserFullscreen();
+      fitCanvas();
+    }
+    placeBelowBar();
+    layoutAll();
+  }
+
+  /** Im Vollbild beginnt die Fläche genau unter der (umbrechenden) Statusleiste. */
+  function placeBelowBar() {
+    canvas.style.top = isFullscreen ? `${status.offsetHeight}px` : '';
+  }
+  const barObserver = new ResizeObserver(() => placeBelowBar());
+  barObserver.observe(status);
+  root.addEventListener('view:teardown', () => barObserver.disconnect(), { once: true });
+
+  function requestBrowserFullscreen() {
+    const d = document.documentElement;
+    const req = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!req) return;
+    try { const r = req.call(d); if (r?.catch) r.catch(() => {}); } catch { /* nicht erlaubt – egal */ }
+  }
+
+  function exitBrowserFullscreen() {
+    const active = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!active) return;
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    try { const r = exit?.call(document); if (r?.catch) r.catch(() => {}); } catch { /* egal */ }
+  }
+
+  // Verlässt der Nutzer das Browser-Vollbild selbst (Geste, Escape), folgt die Ansicht
+  const onFullscreenChange = () => {
+    const active = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!active && isFullscreen) setFullscreen(false);
+  };
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  const onKey = (ev) => { if (ev.key === 'Escape' && isFullscreen) setFullscreen(false); };
+  document.addEventListener('keydown', onKey);
+  root.addEventListener('view:teardown', () => {
+    document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.removeEventListener('keydown', onKey);
+    document.body.classList.remove('seating-fullscreen');
+    exitBrowserFullscreen();
+  }, { once: true });
 
   if (!students.length) {
     canvas.append(el('div.empty.empty--inline', {}, [
@@ -146,6 +220,7 @@ export async function renderSeating(root, classId) {
    * Benoten nicht scrollen muss. Wird bei Größenänderungen neu berechnet.
    */
   function fitCanvas() {
+    if (isFullscreen) { canvas.style.maxHeight = ''; return; }
     const top = canvas.getBoundingClientRect().top + window.scrollY;
     const gap = parseFloat(getComputedStyle(root).paddingBottom) || 24;
     const available = window.innerHeight - top - gap - 4;
@@ -176,7 +251,7 @@ export async function renderSeating(root, classId) {
       (rect.height / (rows + 1)) * 0.95 / base.h,
     );
     // Abrunden, damit die Karten sicher passen
-    return Math.min(150, Math.max(60, Math.floor(factor * 20) * 5));
+    return Math.min(200, Math.max(60, Math.floor(factor * 20) * 5));
   }
 
   function cardSize() {
