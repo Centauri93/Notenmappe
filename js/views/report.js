@@ -13,7 +13,7 @@ import * as store from '../store.js';
 import { el } from '../ui.js';
 import { openPrintPreview } from './printpreview.js';
 import {
-  loadReportData, identityHead, sectionHead, resultBlock,
+  loadReportData, identityHead, sectionHead, finalGradeBox, notesBox,
   gradesTable, gradesFoot,
 } from './reportparts.js';
 
@@ -37,14 +37,13 @@ export async function openReport({ cls, students, scope, range }) {
 
       // Abschnitt: Sonstige Leistungen (mündliche Mitarbeit)
       el('section.sheet__section', {}, [
-        sectionHead('Sonstige Leistungen', resultBlock({
-          label: 'Mündliche Note',
-          value: store.formatAverage(stats.average),
-          note: stats.rounded ? `gerundet: ${stats.rounded}` : 'noch keine Noten',
-        })),
+        sectionHead('Sonstige Leistungen', finalGradeBox(stats)),
         gradesTable(grades),
         gradesFoot(stats, printed),
       ]),
+
+      // Platz für handschriftliche Ergänzungen auf dem Ausdruck
+      notesBox(),
     ]);
   });
 

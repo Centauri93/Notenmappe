@@ -1158,6 +1158,46 @@ body.is-printing-preview #print-root {
 .sheet__photo--fallback { display: grid; place-items: center; font-weight: 700; color: #666; }
 .sheet__name { font-size: 1.5rem; letter-spacing: -.02em; }
 .sheet__meta { color: #555; font-size: .9rem; }
+/* Rechnerischer Schnitt (klein) + leeres Feld für die handschriftliche Endnote */
+.sheet__final { display: flex; align-items: stretch; gap: 1rem; flex: none; }
+.sheet__calc { display: flex; flex-direction: column; justify-content: center; text-align: right; }
+.sheet__calc-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #555; }
+.sheet__calc-value { font-size: 1.25rem; line-height: 1.2; font-weight: 700; }
+.sheet__calc-note { font-size: .75rem; color: #555; min-height: 1em; }
+.sheet__final-box {
+  position: relative;
+  width: 6rem;
+  height: 5rem;
+  border: 2px solid #111;
+  border-radius: 8px;
+  background: #fff;
+}
+.sheet__final-label {
+  position: absolute;
+  top: .25rem;
+  left: .45rem;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #555;
+}
+
+/* Fußzeile unter den Einzelnoten: Anzahl links, Druckdatum rechts */
+.sheet__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .3rem 1.5rem;
+  margin-top: .7rem;
+  font-size: .8rem;
+  color: #555;
+}
+
+/* Liniertes Notizfeld am Ende des Blatts */
+.sheet__notes { margin-top: 1.4rem; padding-top: 1rem; border-top: 2px solid #111; }
+.sheet__lines { margin-top: .4rem; }
+.sheet__line { height: 2rem; border-bottom: 1px solid #bbb; }
+
 .sheet__result { text-align: right; }
 .sheet__result-label { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #555; }
 .sheet__result-value { display: block; font-size: 2.4rem; line-height: 1.1; font-weight: 800; }
@@ -1205,6 +1245,7 @@ body.is-printing-preview #print-root {
   .sheet:last-child { break-after: auto; page-break-after: auto; }
   .sheet__table { break-inside: auto; }
   .sheet__table tr { break-inside: avoid; page-break-inside: avoid; }
+  .sheet__notes { break-inside: avoid; page-break-inside: avoid; }
 }
 
 @page { size: A4 portrait; margin: 16mm 14mm; }

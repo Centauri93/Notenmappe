@@ -115,7 +115,10 @@ Für jedes Foto entsteht ein:e Schüler:in; der Name kommt aus dem Dateinamen
 **„⎙ PDF Klasse“** (oder „PDF“ in einer Zeile der Notentabelle) öffnet eine
 Druckvorschau. Im Druckdialog **„PDF“ → „Als PDF sichern“** wählen. Pro
 Schüler:in entsteht ein Blatt mit allen Einzelnoten, Bemerkungen und der
-errechneten mündlichen Note.
+rechnerischen Durchschnitt (klein) – daneben ein **leeres Notenfeld**, in das
+die Lehrkraft die tatsächliche Note handschriftlich einträgt, falls
+übergreifende Faktoren den Schnitt nach oben oder unten verschieben. Unten
+auf jedem Blatt ein liniertes **Notizfeld** für handschriftliche Ergänzungen.
 
 ## Sicherung
 
