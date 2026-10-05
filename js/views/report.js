@@ -37,7 +37,7 @@ export async function openReport({ cls, students, scope, range }) {
 
       // Abschnitt: Sonstige Leistungen (mündliche Mitarbeit)
       el('section.sheet__section', {}, [
-        sectionHead('Sonstige Leistungen', finalGradeBox(stats)),
+        sectionHead('Sonstige Leistungen', finalGradeBox()),
         gradesTable(grades),
         gradesFoot(stats, printed),
       ]),

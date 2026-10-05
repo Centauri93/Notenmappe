@@ -1158,13 +1158,9 @@ body.is-printing-preview #print-root {
 .sheet__photo--fallback { display: grid; place-items: center; font-weight: 700; color: #666; }
 .sheet__name { font-size: 1.5rem; letter-spacing: -.02em; }
 .sheet__meta { color: #555; font-size: .9rem; }
-/* Rechnerischer Schnitt (klein) + leeres Feld für die handschriftliche Endnote */
-.sheet__final { display: flex; align-items: stretch; gap: 1rem; flex: none; }
-.sheet__calc { display: flex; flex-direction: column; justify-content: center; text-align: right; }
-.sheet__calc-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #555; }
-.sheet__calc-value { font-size: 1.25rem; line-height: 1.2; font-weight: 700; }
-.sheet__calc-note { font-size: .75rem; color: #555; min-height: 1em; }
+/* Leeres Feld für die handschriftliche Endnote */
 .sheet__final-box {
+  flex: none;
   position: relative;
   width: 6rem;
   height: 5rem;
@@ -1187,11 +1183,16 @@ body.is-printing-preview #print-root {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: flex-end;
   gap: .3rem 1.5rem;
   margin-top: .7rem;
   font-size: .8rem;
   color: #555;
 }
+.sheet__foot-left { display: flex; flex-direction: column; gap: .15rem; flex: 1 1 14rem; min-width: 0; }
+.sheet__avg { flex: none; text-align: right; white-space: nowrap; }
+.sheet__avg-label { margin-right: .5rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+.sheet__avg-value { font-size: 1.05rem; color: #111; }
 
 /* Liniertes Notizfeld am Ende des Blatts */
 .sheet__notes { margin-top: 1.4rem; padding-top: 1rem; border-top: 2px solid #111; }

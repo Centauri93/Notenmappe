@@ -84,29 +84,14 @@ export function resultBlock({ label, value, note }) {
 }
 
 /**
- * Notenblock rechts in der Abschnittskopfzeile: klein der rechnerische
- * Durchschnitt, daneben ein großes, leeres Feld für die handschriftlich
- * eingetragene Endnote. Die Lehrkraft kann übergreifende Faktoren
- * berücksichtigen, ohne dass der Ausdruck die rechnerische Zahl als
- * „fertige“ Note erscheinen lässt.
- *
- * @param {{average: number|null, rounded: number|null, count: number}} stats
+ * Leeres Notenfeld rechts in der Abschnittskopfzeile – für die
+ * handschriftlich eingetragene Endnote. Der rechnerische Durchschnitt steht
+ * bewusst nicht daneben, sondern unauffällig unter der Tabelle
+ * (siehe gradesFoot), damit die Zahl nicht als „fertige“ Note wirkt.
  */
-export function finalGradeBox(stats) {
-  const avg = store.formatAverage(stats.average);
-  return el('div.sheet__final', {}, [
-    el('div.sheet__calc', {}, [
-      el('span.sheet__calc-label', { text: 'Rechnerischer Durchschnitt' }),
-      el('strong.sheet__calc-value', { text: avg }),
-      el('span.sheet__calc-note', {
-        text: stats.count
-          ? (stats.rounded ? `≙ Note ${stats.rounded}` : '')
-          : 'noch keine Noten',
-      }),
-    ]),
-    el('div.sheet__final-box', { 'aria-label': 'Feld für die Endnote' }, [
-      el('span.sheet__final-label', { text: 'Note' }),
-    ]),
+export function finalGradeBox() {
+  return el('div.sheet__final-box', { 'aria-label': 'Feld für die Endnote' }, [
+    el('span.sheet__final-label', { text: 'Note' }),
   ]);
 }
 
@@ -164,14 +149,22 @@ export function gradesTable(grades) {
   ]);
 }
 
-/** Fußzeile unter den Einzelnoten: Anzahl und Art der Mittelung. */
+/**
+ * Fußzeile unter den Einzelnoten: links Anzahl und Art der Mittelung,
+ * rechts der rechnerische Durchschnitt – klein, als Information.
+ */
 export function gradesFoot(stats, printed) {
+  const how = stats.hasBoost
+    ? 'gewichteter Durchschnitt (Mehrfachwertung zählt entsprechend oft)'
+    : 'einfacher Durchschnitt';
   return el('footer.sheet__foot', {}, [
-    el('span', {
-      text: stats.hasBoost
-        ? `${stats.count} Einzelnote(n) · gewichteter Durchschnitt (Mehrfachwertung zählt entsprechend oft)`
-        : `${stats.count} Einzelnote(n) · einfacher Durchschnitt`,
-    }),
-    printed ? el('span', { text: `Ausdruck vom ${printed}` }) : null,
+    el('div.sheet__foot-left', {}, [
+      el('span', { text: `${stats.count} Einzelnote(n) · ${how}` }),
+      printed ? el('span', { text: `Ausdruck vom ${printed}` }) : null,
+    ]),
+    el('div.sheet__avg', {}, [
+      el('span.sheet__avg-label', { text: 'Rechnerischer Durchschnitt' }),
+      el('strong.sheet__avg-value', { text: stats.count ? store.formatAverage(stats.average) : '–' }),
+    ]),
   ]);
 }
