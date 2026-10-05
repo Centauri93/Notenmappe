@@ -1233,6 +1233,26 @@ body.is-printing-preview #print-root {
   color: #666;
 }
 
+/* Leere Klassenliste: Foto + Name links, leere Kästchen zum Handeintragen */
+.blank-table { width: 100%; border-collapse: collapse; margin-top: 1rem; table-layout: fixed; }
+.blank-table th, .blank-table td { border: 1px solid #555; padding: .25rem .4rem; }
+.blank-table th {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #333;
+  text-align: center;
+  vertical-align: bottom;
+  height: 2.2rem;
+  overflow-wrap: anywhere;
+}
+.blank-table th.blank-table__who { text-align: left; width: 58mm; }
+.blank-table__cell { height: 11mm; }
+.blank-table__ident { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.blank-table__photo { width: 9mm; height: 9mm; border-radius: 4px; object-fit: cover; background: #eee; flex: none; }
+.blank-table__photo--fallback { display: grid; place-items: center; font-size: .7rem; font-weight: 700; color: #666; }
+.blank-table__name { font-size: .92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* Liniertes Notizfeld: nimmt den Rest der Seite ein, Linien füllt report.js */
 .sheet__notes { margin-top: 1.4rem; padding-top: 1rem; border-top: 2px solid #111; }
 .sheet__notes--fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 3.6rem; }

@@ -6,6 +6,7 @@
 import * as store from '../store.js';
 import { classHeader } from './classnav.js';
 import { openReport } from './report.js';
+import { openBlankListDialog } from './blanklist.js';
 import {
   el, clear, openModal, toast,
   formatDate, formatDateShort, formatDateTime, toDateInputValue, initials, photoUrl,
@@ -25,6 +26,11 @@ export async function renderTable(root, classId) {
   root.append(classHeader(cls, 'table', [
     el('button.btn', {
       type: 'button', text: '∑ Noten berechnen', onClick: () => showAverages(),
+    }),
+    el('button.btn', {
+      type: 'button', text: '⎙ Leere Liste',
+      title: 'Klassenliste mit leeren Kästchen zum Handeintragen',
+      onClick: () => openBlankListDialog({ cls, students }),
     }),
     el('button.btn.btn--primary', {
       type: 'button', text: '⎙ PDF Klasse',

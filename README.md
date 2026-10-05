@@ -51,7 +51,7 @@ CSS und ES-Modulen.
 | **Klassen** | Klassen anlegen, umbenennen, löschen |
 | **Schüler:innen** | Namen und Fotos pflegen (Datei oder Kamera), ganze Klasse per Foto-Import anlegen |
 | **Sitzplan** | Karten frei verschieben, antippen zum Benoten, Stunde beenden |
-| **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF |
+| **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF, leere Klassenliste |
 | **Einstellungen** | Passwortschutz, Sicherung exportieren/importieren, Daten löschen |
 
 ### Stundenablauf
@@ -130,6 +130,15 @@ liniertes **Notizfeld** bis zum Seitenende; unten steht die Seitenzahl.
 
 > Im Druckdialog **„beidseitig“** und **Maßstab 100 %** wählen.
 
+### Leere Klassenliste
+
+**„⎙ Leere Liste“** im Reiter *Noten* erzeugt ein Raster zum Handeintragen:
+links Foto und Name (alphabetisch), rechts leere Kästchen. Die
+Spaltenüberschriften gibt man selbst ein (eine pro Zeile, z.B. „KA 1“,
+„SoLei“, „Referat“; Leerzeilen ergeben Spalten ohne Überschrift, maximal 12),
+dazu optional ein Titel. Die letzte Eingabe wird gemerkt. Bei großen Klassen
+geht es auf der nächsten Seite mit wiederholter Kopfzeile weiter.
+
 ## Sicherung
 
 *Einstellungen → Sicherung exportieren* erzeugt `noten-sicherung-JJJJ-MM-TT.zip`
@@ -172,7 +181,7 @@ js/
   dnd.js                 Drag & Drop über Pointer-Events (Touch + Maus)
   ui.js                  DOM-Helfer, Modal, Toast, Formatierung
   app.js                 Hash-Router
-  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Bericht, Einstellungen, Sperre
+  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Bericht, leere Liste, Einstellungen, Sperre
 ```
 
 ### Datenmodell (IndexedDB, Datenbank `notenmappe-2`)
