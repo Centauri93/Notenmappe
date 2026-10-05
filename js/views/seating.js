@@ -11,12 +11,12 @@ import * as store from '../store.js';
 import { makeDraggable } from '../dnd.js';
 import { baseCardSize, gridSize, gridSlot, cardSizeOf, applyCardScale, layoutCards } from '../seatlayout.js';
 import { classHeader } from './classnav.js';
+import { openGradeDialog as openSharedGradeDialog } from './gradedialog.js';
 import {
   el, clear, toast, openModal, confirmDialog,
   photoUrl, initials, formatDateTime,
 } from '../ui.js';
 
-const GRADE_VALUES = [1, 2, 3, 4, 5, 6];
 
 export async function renderSeating(root, classId) {
   const cls = await store.getClass(classId);
@@ -416,171 +416,29 @@ export async function renderSeating(root, classId) {
    * sich der Eintrag beliebig ergänzen (erst Bemerkung, später Note).
    */
   function openGradeDialog(student) {
-    /** @type {import('../store.js').Note|null} */
-    let entry = sessionGrades.find((g) => g.studentId === student.id) || null;
-
-    const commentField = el('textarea.textarea', {
-      id: 'grade-comment', rows: '2',
-      placeholder: 'Besondere Bemerkung zu dieser Stunde …',
-    });
-    // textarea kennt kein value-Attribut – Inhalt über die Property setzen
-    commentField.value = entry?.comment || '';
-
-    const gradeButtons = GRADE_VALUES.map((value) =>
-      el('button.grade-btn', {
-        type: 'button',
-        dataset: { value: String(value) },
-        text: String(value),
-        'aria-label': `Note ${value}`,
-        onClick: () => setGrade(value),
-      }));
-
-    const absentBtn = el('button.btn.state-btn.state-btn--absent', {
-      type: 'button', text: '🚫 Fehlt',
-      onClick: () => toggleAbsent(),
-    });
-    // Ein Knopf je Gewichtungsstufe – antippen der aktiven Stufe nimmt sie zurück
-    const weightButtons = store.WEIGHT_OPTIONS.map((factor) =>
-      el('button.btn.state-btn.state-btn--weight', {
-        type: 'button',
-        dataset: { weight: String(factor) },
-        text: `×${factor}`,
-        title: `Diese Note zählt in dieser Stunde ${factor}-fach – z.B. für ein Referat`,
-        onClick: () => setWeight(factor),
-      }));
-
-    const statusLine = el('p.hint.dialog-state');
-
-    const url = photoUrl(student);
-    const body = el('div.grade-dialog', {}, [
-      el('div.grade-dialog__head', {}, [
-        url
-          ? el('img.avatar.avatar--lg', { src: url, alt: '' })
-          : el('span.avatar.avatar--lg.avatar--fallback', { text: initials(student) }),
-        el('div', {}, [
-          el('strong.grade-dialog__name', { text: store.fullName(student) }),
-          statusLine,
-        ]),
-      ]),
-      el('div.grade-grid', {}, gradeButtons),
-      el('div.state-row', {}, [
-        absentBtn,
-        el('div.weight-group', {}, weightButtons),
-      ]),
-      el('div.comment-box', {}, [
-        el('label.label', { for: 'grade-comment', text: 'Bemerkung' }),
-        commentField,
-      ]),
-      el('p.hint', { text: 'Alles wird automatisch gespeichert und bleibt bis zum Stundenende änderbar.' }),
-    ]);
-
-    const modal = openModal({
-      title: 'Eintrag für diese Stunde',
-      body,
-      // Bemerkung sichern, falls der Dialog ohne Notenklick verlassen wird
-      onClose: () => { void flushComment(); },
-    });
-    refreshDialog();
-
-    /* --------------------------------------------------------- Speichern */
-
-    /** Schreibt einen Teil-Patch und hält Karte und Statuszeile aktuell. */
-    async function persist(patch) {
-      try {
+    const entry = sessionGrades.find((g) => g.studentId === student.id) || null;
+    openSharedGradeDialog({
+      student,
+      entry,
+      hint: 'Alles wird automatisch gespeichert und bleibt bis zum Stundenende änderbar.',
+      save: async (patch) => {
         if (!openSession) openSession = await store.getOrCreateOpenSession(classId);
-        entry = await store.saveEntry({
+        const saved = await store.saveEntry({
           sessionId: openSession.id,
           classId,
           studentId: student.id,
           ...patch,
         });
         sessionGrades = sessionGrades.filter((g) => g.studentId !== student.id);
-        if (entry) sessionGrades.push(entry);
+        if (saved) sessionGrades.push(saved);
         // Denselben Eintrag im 6-Monats-Bestand ersetzen, damit der Schnitt stimmt
         allGrades = allGrades.filter((g) => !(g.sessionId === openSession.id && g.studentId === student.id));
-        if (entry) allGrades.push(entry);
+        if (saved) allGrades.push(saved);
         refreshCard(student.id);
         updateStatus();
-        return true;
-      } catch (err) {
-        toast(err.message || 'Konnte nicht gespeichert werden.', 'error');
-        return false;
-      }
-    }
-
-    /** Speichert die Bemerkung, sofern sie sich geändert hat. */
-    async function flushComment() {
-      const text = commentField.value.trim();
-      if (text === (entry?.comment || '')) return;
-      await persist({ comment: text });
-    }
-
-    async function setGrade(value) {
-      // Dieselbe Note nochmal antippen nimmt sie wieder zurück
-      const isSame = entry && entry.value === value;
-      const ok = await persist({
-        value: isSame ? null : value,
-        comment: commentField.value,
-        ...(isSame ? {} : { absent: false }),
-      });
-      if (!ok) return;
-      if (isSame) {
-        refreshDialog();
-        toast('Note zurückgenommen');
-      } else {
-        modal.close();
-        toast(`Note ${value} für ${store.fullName(student)} gespeichert`, 'success');
-      }
-    }
-
-    async function toggleAbsent() {
-      const next = !entry?.absent;
-      const ok = await persist({ absent: next, comment: commentField.value });
-      if (!ok) return;
-      if (next) {
-        modal.close();
-        toast(`${store.fullName(student)} als fehlend vermerkt`);
-      } else {
-        refreshDialog();
-      }
-    }
-
-    /** Antippen der bereits aktiven Stufe nimmt die Mehrfachwertung zurück. */
-    async function setWeight(factor) {
-      const next = store.weightOf(entry || {}) === factor ? 1 : factor;
-      const ok = await persist({ weight: next, comment: commentField.value });
-      if (!ok) return;
-      refreshDialog();
-      toast(next > 1 ? `Zählt in dieser Stunde ${next}-fach` : 'Normale Gewichtung');
-    }
-
-    /* ----------------------------------------------------------- Anzeige */
-
-    function refreshDialog() {
-      const absent = Boolean(entry?.absent);
-      const weight = store.weightOf(entry || {});
-      const boosted = weight > 1;
-
-      for (const btn of gradeButtons) {
-        btn.classList.toggle('is-active', entry?.value === Number(btn.dataset.value));
-        btn.disabled = absent;
-      }
-      absentBtn.classList.toggle('is-active', absent);
-      absentBtn.setAttribute('aria-pressed', String(absent));
-      for (const btn of weightButtons) {
-        const active = weight === Number(btn.dataset.weight);
-        btn.classList.toggle('is-active', active);
-        btn.setAttribute('aria-pressed', String(active));
-        btn.disabled = absent;
-      }
-
-      const parts = [];
-      if (absent) parts.push('fehlt');
-      else if (entry?.value !== null && entry?.value !== undefined) parts.push(`Note ${entry.value}`);
-      else parts.push('noch keine Note');
-      if (boosted) parts.push(`zählt ${weight}-fach`);
-      statusLine.textContent = parts.join(' · ');
-    }
+        return saved;
+      },
+    });
   }
 
   /* ------------------------------------------------------ Stundenabschluss */

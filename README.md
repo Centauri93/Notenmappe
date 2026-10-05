@@ -79,8 +79,8 @@ erst am nächsten Tag beendet wird. „Stunde beenden“ ändert keinen Zeitpunk
 
 Pro Schüler:in und Stunde gibt es **einen** Eintrag. Alles wird sofort
 gespeichert – auch eine Bemerkung allein. Dieselbe Note noch einmal antippen
-nimmt sie zurück. Mit **„Stunde beenden“** wird der Stand festgeschrieben;
-abgeschlossene Stunden sind unveränderlich.
+nimmt sie zurück. Mit **„Stunde beenden“** wird der Stand festgeschrieben; im Sitzplan ist er
+danach nicht mehr erreichbar, Korrekturen gehen über die Notentabelle.
 
 ### Vollbild (iPad)
 
@@ -89,6 +89,13 @@ Sitzfläche füllt den ganzen Bildschirm, die Bedienknöpfe wandern in die
 Leiste oben. Die Karten behalten ihre Plätze und verteilen sich auf die
 größere Fläche; mit dem Regler lassen sie sich bis 200 % vergrößern.
 **„✕ Vollbild beenden“** (oder Escape) führt zurück.
+
+### Nachträglich ändern
+
+In der **Notentabelle** öffnet ein Tipp auf eine Note denselben Dialog wie im
+Sitzplan – auch bei abgeschlossenen Stunden. Note, „fehlt“, Mehrfachwertung
+und Bemerkung lassen sich dort ändern; ein Tipp auf eine leere Zelle legt
+einen Eintrag nachträglich an. Der Zeitpunkt bleibt der Stundenbeginn.
 
 ### Fehlt
 
@@ -180,7 +187,7 @@ js/
   dnd.js                 Drag & Drop über Pointer-Events (Touch + Maus)
   ui.js                  DOM-Helfer, Modal, Toast, Formatierung
   app.js                 Hash-Router
-  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Bericht, leere Liste, Einstellungen, Sperre
+  views/                 Klassen, Schüler:innen, Sitzplan, Noten, Eintrags-Dialog, Bericht, leere Liste, Einstellungen, Sperre
 ```
 
 ### Datenmodell (IndexedDB, Datenbank `notenmappe-2`)

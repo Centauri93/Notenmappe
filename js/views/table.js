@@ -7,20 +7,23 @@ import * as store from '../store.js';
 import { classHeader } from './classnav.js';
 import { openReport } from './report.js';
 import { openBlankListDialog } from './blanklist.js';
+import { openGradeDialog } from './gradedialog.js';
 import {
   el, clear, openModal, toast,
-  formatDate, formatDateShort, formatDateTime, toDateInputValue, initials, photoUrl,
+  formatDate, formatDateShort, formatDateTime, formatDateWeekday, toDateInputValue, initials, photoUrl,
 } from '../ui.js';
 
 export async function renderTable(root, classId) {
   const cls = await store.getClass(classId);
   if (!cls) { location.hash = '#/classes'; return; }
 
-  const [students, sessions, allGrades] = await Promise.all([
+  let allGrades;
+  const [students, sessions, grades] = await Promise.all([
     store.listStudents(classId),
     store.listSessions(classId),
     store.listGradesOfClass(classId),
   ]);
+  allGrades = grades;
 
   clear(root);
   root.append(classHeader(cls, 'table', [
@@ -139,7 +142,12 @@ export async function renderTable(root, classId) {
           const grades = gradesFor(s.id, session.id);
           const cell = el('td.cell-grade');
           if (!grades.length) {
-            cell.append(el('span.cell-empty', { text: '·' }));
+            // Leere Zelle: antippen legt nachträglich einen Eintrag an
+            cell.append(el('button.cell-empty.cell-empty--btn', {
+              type: 'button', text: '·',
+              'aria-label': `Eintrag für ${store.fullName(s)} am ${formatDateShort(session.startedAt)} anlegen`,
+              onClick: () => editEntry(s, session, null),
+            }));
             return cell;
           }
           for (const g of grades) {
@@ -157,7 +165,7 @@ export async function renderTable(root, classId) {
               dataset: kind === 'grade' ? { value: String(g.value) } : {},
               text: label,
               title: titleParts.join(' – '),
-              onClick: () => showGradeDetail(s, g),
+              onClick: () => editEntry(s, session, g),
             });
             if (g.comment) chip.classList.add('has-comment');
             if (boosted) {
@@ -191,28 +199,33 @@ export async function renderTable(root, classId) {
     }));
   }
 
-  function showGradeDetail(student, grade) {
-    const weight = store.weightOf(grade);
-    const boosted = weight > 1;
-    const title = grade.absent ? 'Fehlzeit' : (grade.value === null ? 'Bemerkung' : 'Einzelnote');
-
-    let noteCell;
-    if (grade.absent) noteCell = el('span.grade-chip.grade-chip--absent', { text: 'fehlt' });
-    else if (grade.value === null) noteCell = el('span.hint', { text: 'keine Note, nur Bemerkung' });
-    else noteCell = el('span.grade-chip', { text: String(grade.value), dataset: { value: String(grade.value) } });
-
-    openModal({
-      title,
-      body: el('div.detail', {}, [
-        el('p.detail__row', {}, [el('span.label', { text: 'Schüler:in' }), el('strong', { text: store.fullName(student) })]),
-        el('p.detail__row', {}, [el('span.label', { text: 'Note' }), noteCell]),
-        el('p.detail__row', {}, [
-          el('span.label', { text: 'Gewichtung' }),
-          el('span', { text: boosted ? `zählt ${weight}-fach (×${weight})` : 'einfach' }),
-        ]),
-        el('p.detail__row', {}, [el('span.label', { text: 'Zeitpunkt' }), el('span', { text: formatDateTime(grade.createdAt) })]),
-        el('p.detail__row', {}, [el('span.label', { text: 'Bemerkung' }), el('span', { text: grade.comment || '—' })]),
-      ]),
+  /**
+   * Eintrag einer Stunde bearbeiten – auch nachträglich, bei abgeschlossenen
+   * Stunden. Note, fehlt, Gewichtung und Bemerkung lassen sich ändern;
+   * danach wird die Tabelle neu gezeichnet, damit Chips und Schnitt stimmen.
+   */
+  function editEntry(student, session, grade) {
+    const closed = session.closedAt !== null;
+    openGradeDialog({
+      student,
+      entry: grade,
+      title: `Eintrag vom ${formatDateWeekday(session.startedAt)}`,
+      hint: closed
+        ? 'Nachträgliche Änderung einer abgeschlossenen Stunde. Alles wird sofort gespeichert.'
+        : 'Laufende Stunde – alles wird sofort gespeichert.',
+      closeOnGrade: false,
+      save: async (patch) => {
+        const saved = await store.saveEntry({
+          sessionId: session.id,
+          classId,
+          studentId: student.id,
+          ...patch,
+        });
+        allGrades = allGrades.filter((g) => !(g.sessionId === session.id && g.studentId === student.id));
+        if (saved) allGrades.push(saved);
+        draw();
+        return saved;
+      },
     });
   }
 

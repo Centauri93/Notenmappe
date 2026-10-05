@@ -985,6 +985,18 @@ body.seating-fullscreen .seating-canvas {
 .cell-grade { white-space: nowrap; }
 .cell-grade .grade-chip { margin: 0 .1rem; }
 .cell-empty { color: var(--text-muted); }
+/* Leere Zelle als Tipp-Ziel: unauffällig, aber groß genug für den Finger */
+.cell-empty--btn {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.cell-empty--btn:hover { background: var(--surface-2); color: var(--text); }
 .col-avg { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
 .avg-value { display: block; font-size: 1.1rem; font-weight: 750; }
 .avg-count { display: block; font-size: .7rem; color: var(--text-muted); }
