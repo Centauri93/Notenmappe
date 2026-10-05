@@ -48,12 +48,21 @@ CSS und ES-Modulen.
 
 | Ansicht | Was man dort tut |
 | --- | --- |
-| **Klassen** | Klassen anlegen, umbenennen, löschen |
+| **Klassen** | Klassen anlegen, umbenennen, duplizieren (für ein zweites Fach), löschen |
 | **Schüler:innen** | Namen und Fotos pflegen (Datei oder Kamera), ganze Klasse per Foto-Import anlegen |
 | **Sitzplan** | Karten frei verschieben, antippen zum Benoten, Stunde beenden |
 | **Noten** | Tabelle aller Stunden, Zeitraumfilter, Durchschnitte, PDF, leere Klassenliste |
 | **Besprechung** | Notenbesprechungen anlegen, Klasse über den Sitzplan durchgehen, Endnote und Notizen, PDF |
 | **Einstellungen** | Passwortschutz, Sicherung exportieren/importieren, Daten löschen |
+
+### Klasse duplizieren
+
+Unterrichtet man dieselbe Klasse in zwei Fächern, legt man sie einmal an und
+dupliziert sie über die Klassenübersicht (**„Duplizieren"**, neuer Name, z.B.
+„CT 24 Chemie“). Übernommen werden alle Schüler:innen mit Fotos und die
+Sitzordnung – keine Stunden, Noten oder Besprechungen. Die Kopie ist danach
+unabhängig: Änderungen an Schüler:innen oder Fotos gelten nur in der
+jeweiligen Klasse.
 
 ### Stundenablauf
 

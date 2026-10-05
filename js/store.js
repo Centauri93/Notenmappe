@@ -71,6 +71,44 @@ export async function deleteClass(id) {
   });
 }
 
+/**
+ * Dupliziert eine Klasse unter neuem Namen: alle Schüler:innen mit Fotos und
+ * die Sitzordnung werden übernommen – keine Stunden, Noten oder
+ * Besprechungen. Gedacht für dieselbe Klasse in einem zweiten Fach.
+ * @returns {Promise<Klasse>} die neue Klasse
+ */
+export async function duplicateClass(sourceId, newName) {
+  const source = await getClass(sourceId);
+  if (!source) throw new Error('Klasse nicht gefunden');
+  const students = await listStudents(sourceId);
+
+  const copy = {
+    id: newId(),
+    name: (newName || '').trim() || `${source.name} (Kopie)`,
+    seating: {},
+    cardScale: source.cardScale,
+    createdAt: Date.now(),
+  };
+
+  // Neue Kennungen je Schüler:in, Sitzplatz über die alte Kennung zuordnen
+  const rows = [];
+  for (const s of students) {
+    const id = newId();
+    if (source.seating?.[s.id]) copy.seating[id] = { ...source.seating[s.id] };
+    rows.push(await toStudentRow({
+      id, classId: copy.id, firstName: s.firstName, lastName: s.lastName,
+      photo: s.photo, createdAt: Date.now(),
+    }));
+  }
+
+  await tx(['classes', 'students'], 'readwrite', (t) => {
+    t.objectStore('classes').put(copy);
+    for (const row of rows) t.objectStore('students').put(row);
+    return Promise.resolve();
+  });
+  return copy;
+}
+
 /** Speichert die Sitzordnung (Position pro Schüler:in) einer Klasse. */
 export async function saveSeating(classId, seating) {
   const cls = await getClass(classId);

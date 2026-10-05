@@ -59,6 +59,11 @@ export async function renderClasses(root) {
         el('button.btn.btn--ghost', {
           type: 'button', text: 'Umbenennen', onClick: () => rename(root, cls),
         }),
+        el('button.btn.btn--ghost', {
+          type: 'button', text: 'Duplizieren',
+          title: 'Kopie mit allen Schüler:innen und Fotos – ohne Noten',
+          onClick: () => duplicate(root, cls, students.length),
+        }),
         el('button.btn.btn--ghost.btn--danger-ghost', {
           type: 'button', text: 'Löschen', onClick: () => remove(root, cls, students.length),
         }),
@@ -91,6 +96,28 @@ async function rename(root, cls) {
   await store.renameClass(cls.id, name);
   toast('Klasse umbenannt', 'success');
   renderClasses(root);
+}
+
+/**
+ * Kopie der Klasse für ein zweites Fach: Schüler:innen, Fotos und Sitzordnung
+ * kommen mit, Noten und Besprechungen nicht.
+ */
+async function duplicate(root, cls, studentCount) {
+  const name = await promptDialog({
+    title: 'Klasse duplizieren',
+    label: `Name der Kopie – übernommen werden ${studentCount} Schüler:in(nen) mit Fotos und Sitzordnung, keine Noten.`,
+    value: `${cls.name} `,
+    placeholder: 'z.B. CT 24 Chemie',
+    confirmLabel: 'Duplizieren',
+  });
+  if (!name) return;
+  try {
+    const copy = await store.duplicateClass(cls.id, name);
+    toast(`Klasse „${copy.name}“ angelegt`, 'success');
+    renderClasses(root);
+  } catch (err) {
+    toast(err.message || 'Duplizieren fehlgeschlagen', 'error');
+  }
 }
 
 async function remove(root, cls, studentCount) {
