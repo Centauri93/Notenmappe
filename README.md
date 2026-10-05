@@ -141,8 +141,8 @@ liniertes **Notizfeld** bis zum Seitenende; unten steht die Seitenzahl.
 
 **„⎙ Leere Liste“** im Reiter *Noten* erzeugt sofort ein Raster zum
 Handeintragen: links Foto (15 mm) und Name (alphabetisch), rechts acht leere
-Kästchen mit leerer Kopfzeile – nichts ist vorbelegt. Oben steht nur Klasse
-und Datum; die Zeilen sind so hoch wie das Foto, 14 je Seite, größere
+Kästchen; die Kopfzeile ist leer und 30 mm hoch, damit man Überschriften schräg von Hand eintragen kann. Oben steht nur Klasse
+und Datum; die Zeilen sind so hoch wie das Foto, 13 je Seite, größere
 Klassen laufen mit wiederholter Kopfzeile auf die nächste Seite.
 
 ## Sicherung

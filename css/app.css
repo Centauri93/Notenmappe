@@ -1257,7 +1257,8 @@ body.is-printing-preview #print-root {
   color: #333;
   text-align: center;
   vertical-align: bottom;
-  height: 2.2rem;
+  /* Doppelt so hoch wie eine Zeile (15 mm): Platz, um Überschriften schräg von Hand einzutragen */
+  height: 30mm;
   overflow-wrap: anywhere;
 }
 .blank-table th.blank-table__who { text-align: left; width: 62mm; padding-left: .4rem; }
