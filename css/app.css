@@ -1236,6 +1236,8 @@ body.is-printing-preview #print-root {
 /* Liniertes Notizfeld: nimmt den Rest der Seite ein, Linien füllt report.js */
 .sheet__notes { margin-top: 1.4rem; padding-top: 1rem; border-top: 2px solid #111; }
 .sheet__notes--fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 3.6rem; }
+/* Folgt das Notizfeld direkt auf die Kopfzeile (reine Notizseite), reicht deren Strich */
+.sheet__head + .sheet__notes { margin-top: .8rem; padding-top: 0; border-top: 0; }
 .sheet__lines { margin-top: .4rem; flex: 1 1 auto; min-height: 0; }
 .sheet__line { height: 2rem; border-bottom: 1px solid #bbb; }
 .sheet__tail { break-inside: avoid; }
