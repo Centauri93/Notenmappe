@@ -195,7 +195,7 @@ js/
 | Store | Inhalt |
 | --- | --- |
 | `classes` | `{ id, name, seating: { [studentId]: {x, y} }, cardScale, createdAt }` |
-| `students` | `{ id, classId, firstName, lastName, photo: Blob, createdAt }` |
+| `students` | `{ id, classId, firstName, lastName, photoBytes: ArrayBuffer, createdAt }` – nach außen als `photo: Blob` |
 | `sessions` | `{ id, classId, startedAt, closedAt }` – `closedAt: null` = laufend |
 | `grades` | `{ id, sessionId, classId, studentId, value, comment, absent, weight, createdAt }` |
 | `meta` | Einstellungen (z.B. Passwortschutz) |
@@ -203,6 +203,12 @@ js/
 `value: null` = Eintrag ohne Note, `absent: true` = fehlt, `weight: 2|3|5` =
 zählt entsprechend oft (sonst 1). Sitzplatz-Positionen sind Bruchteile von
 0–1 der Sitzfläche.
+
+Fotos liegen als Bytes (ArrayBuffer) in der Datenbank, nicht als Blob:
+Safari auf iOS verliert in IndexedDB gespeicherte Blobs nach einem
+App-Neustart gelegentlich (WebKit-Fehler). Alte Blob-Datensätze werden beim
+Start einmalig umgewandelt; ein bereits verlorenes Foto muss neu hinzugefügt
+werden.
 
 Die Datenbank heißt bewusst anders als die der ersten Version (`noten-app`),
 damit beide Apps im selben Browser nebeneinander laufen können.

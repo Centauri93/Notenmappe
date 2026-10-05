@@ -94,12 +94,40 @@ export async function saveCardScale(classId, scale) {
  * @param {{id, classId, createdAt, firstName, lastName, photo}} plain
  */
 export async function encryptStudentWithKey(key, plain) {
-  const { id, classId, createdAt, firstName, lastName, photo } = plain;
+  const { id, classId, createdAt, firstName, lastName } = plain;
   const encName = await security.encryptJSONWithKey(key, { firstName, lastName });
-  const encPhoto = photo
-    ? await security.encryptWithKey(key, new Uint8Array(await photo.arrayBuffer()))
-    : null;
+  const bytes = await photoBytesOf(plain);
+  const encPhoto = bytes ? await security.encryptWithKey(key, new Uint8Array(bytes)) : null;
   return { id, classId, createdAt, encName, encPhoto };
+}
+
+/*
+ * Fotos liegen in der Datenbank als reine Bytes (ArrayBuffer), nicht als
+ * Blob: Safari auf iOS verliert in IndexedDB gespeicherte Blobs nach einem
+ * Neustart der App gelegentlich (bekannter WebKit-Fehler) – die Bytes sind
+ * davon nicht betroffen. Nach außen bleibt `photo` ein Blob.
+ */
+
+/** Liefert die Foto-Bytes eines Datensatzes, egal in welcher Form sie vorliegen. */
+async function photoBytesOf(obj) {
+  if (obj.photoBytes) return obj.photoBytes;
+  if (obj.photo instanceof Blob) return obj.photo.arrayBuffer();
+  return null;
+}
+
+/** Unverschlüsselter Datensatz: Blob → Bytes. */
+async function plainToRow(plain) {
+  const { photo, photoBytes, ...rest } = plain;
+  const bytes = await photoBytesOf({ photo, photoBytes });
+  return { ...rest, photo: null, photoBytes: bytes };
+}
+
+/** Unverschlüsselter Datensatz: Bytes → Blob (auch alte Blob-Datensätze kommen unverändert durch). */
+function rowToPlain(row) {
+  if (!row) return row;
+  const { photoBytes, ...rest } = row;
+  if (photoBytes) return { ...rest, photo: new Blob([photoBytes], { type: 'image/jpeg' }) };
+  return rest;
 }
 
 /** @param {CryptoKey} key */
@@ -112,16 +140,21 @@ async function decryptStudentWithKey(key, row) {
   return { id: row.id, classId: row.classId, createdAt: row.createdAt, firstName, lastName, photo };
 }
 
-/** Baut den zu speichernden Datensatz – verschlüsselt, falls Schutz aktiv. */
-async function toStudentRow(plain) {
-  if (!(await security.isConfigured())) return plain;
+/**
+ * Baut den zu speichernden Datensatz – verschlüsselt, falls Schutz aktiv,
+ * sonst mit dem Foto als Bytes. `key` kann übergeben werden (Import).
+ */
+export async function toStudentRow(plain, key = null) {
+  if (key) return encryptStudentWithKey(key, plain);
+  if (!(await security.isConfigured())) return plainToRow(plain);
   return encryptStudentWithKey(security.getActiveKey(), plain);
 }
 
 /** Wandelt einen gespeicherten Datensatz in das entschlüsselte Objekt. */
 function fromStudentRow(row) {
-  if (!row || !row.encName) return row;
-  return decryptStudentWithKey(security.getActiveKey(), row);
+  if (!row) return row;
+  if (row.encName) return decryptStudentWithKey(security.getActiveKey(), row);
+  return rowToPlain(row);
 }
 
 /* ----------------------------------------------------------- Schüler:innen */
@@ -472,6 +505,33 @@ export async function alignGradeTimes() {
   await put('meta', { key: FLAG, value: true, at: Date.now() });
 }
 
+/**
+ * Wandelt Fotos, die noch als Blob gespeichert sind, in Bytes um (einmalig).
+ * Ein Blob, den Safari bereits verloren hat, lässt sich nicht mehr lesen –
+ * das Foto fehlt dann und muss neu hinzugefügt werden; der Datensatz
+ * selbst bleibt erhalten.
+ */
+export async function migratePhotoBlobs() {
+  const FLAG = 'photoBytesMigrated';
+  if (await get('meta', FLAG)) return;
+  const rows = await getAll('students');
+  const changed = [];
+  let lost = 0;
+  for (const row of rows) {
+    if (row.encName || !(row.photo instanceof Blob)) continue;
+    let bytes = null;
+    try {
+      bytes = await row.photo.arrayBuffer();
+      if (!bytes.byteLength) bytes = null;
+    } catch { bytes = null; }
+    if (!bytes) lost += 1;
+    changed.push({ ...row, photo: null, photoBytes: bytes });
+  }
+  if (changed.length) await writeRows({ students: changed });
+  await put('meta', { key: FLAG, value: true, at: Date.now(), lost });
+  return { converted: changed.length, lost };
+}
+
 /* ------------------------------------------------- Passwortschutz: Migration */
 
 /**
@@ -494,7 +554,11 @@ async function writeRows(rowsByStore) {
 
 /** Alle Ablagen mit personenbezogenen Inhalten, jeweils mit ihren Umwandlern. */
 const SECRET_STORES = [
-  { name: 'students', encrypt: encryptStudentWithKey, decrypt: decryptStudentWithKey },
+  {
+    name: 'students',
+    encrypt: (key, row) => encryptStudentWithKey(key, rowToPlain(row)),
+    decrypt: async (key, row) => plainToRow(await decryptStudentWithKey(key, row)),
+  },
   { name: 'grades', encrypt: encryptGradeWithKey, decrypt: decryptGradeWithKey },
 ];
 

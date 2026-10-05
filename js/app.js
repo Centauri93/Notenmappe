@@ -89,6 +89,7 @@ async function start() {
   try {
     await openDB();
     await store.alignGradeTimes();
+    await store.migratePhotoBlobs();
   } catch (err) {
     clear(app).append(el('div.empty', {}, [
       el('p', { text: 'Der lokale Speicher (IndexedDB) ist nicht verfügbar.' }),

@@ -195,7 +195,7 @@ export async function applyBackup({ payload, photos }, mode) {
       id: rest.id, classId: rest.classId, createdAt: rest.createdAt,
       firstName: rest.firstName || '', lastName: rest.lastName || '', photo,
     };
-    studentRows.push(protectedDevice ? await store.encryptStudentWithKey(key, plain) : plain);
+    studentRows.push(await store.toStudentRow(plain, key));
   }
 
   // Zeitpunkt einer Note ist der Stundenbeginn (siehe store.saveEntry)

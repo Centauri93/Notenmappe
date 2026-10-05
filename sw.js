@@ -6,7 +6,7 @@
  */
 
 // Version bei jeder Code-Änderung erhöhen – dadurch lädt die App frisch.
-const CACHE = 'notenmappe2-v16';
+const CACHE = 'notenmappe2-v17';
 
 const SHELL = [
   './',
