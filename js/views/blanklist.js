@@ -29,46 +29,67 @@ export function openBlankListDialog({ cls, students }) {
 /* ------------------------------------------------------------ Ausdruck */
 
 /**
- * @param {{cls: import('../store.js').Klasse, students: import('../store.js').Schueler[], columns: string[]}} opts
+ * Übersicht zu einer Besprechung: dieselbe Liste, aber die erste Spalte
+ * heißt „SoLei“ und enthält die vergebene Endnote; der Rest bleibt frei.
  */
-export function openBlankList({ cls, students, columns }) {
+export async function openConferenceOverview({ cls, students, conference }) {
+  const entries = await store.listConferenceEntries(conference.id);
+  const values = new Map(entries.map((e) => [e.studentId, store.finalGradeLabel(e) || '']));
+  openBlankList({
+    cls, students,
+    columns: ['SoLei', ...Array.from({ length: COLUMN_COUNT - 1 }, () => '')],
+    prefill: { column: 0, values },
+    subtitle: conference.title,
+  });
+}
+
+/**
+ * @param {{
+ *   cls: import('../store.js').Klasse,
+ *   students: import('../store.js').Schueler[],
+ *   columns: string[],
+ *   prefill?: {column: number, values: Map<string, string>},
+ *   subtitle?: string,
+ * }} opts
+ */
+export function openBlankList({ cls, students, columns, prefill = null, subtitle = '' }) {
   const sorted = [...students].sort(store.byName);
   const preview = openPrintPreview({
-    title: `Klassenliste – ${cls.name}`,
+    title: subtitle ? `Übersicht – ${cls.name} · ${subtitle}` : `Klassenliste – ${cls.name}`,
     pages: [],
-    hint: 'Leere Liste zum Handeintragen. Im Druckdialog „PDF“ → „Als PDF sichern“.',
+    hint: 'Liste zum Handeintragen. Im Druckdialog „PDF“ → „Als PDF sichern“.',
   });
   const host = preview.pagesElement;
   const printed = formatDate(Date.now());
 
   const pages = [];
-  let { page, tbody } = newPage({ host, cls, columns, printed, first: true });
+  let { page, tbody } = newPage({ host, cls, columns, printed, first: true, subtitle });
   pages.push(page);
 
   for (const student of sorted) {
-    const row = studentRow(student, columns.length);
+    const row = studentRow(student, columns.length, prefill);
     tbody.append(row);
     if (overflows(page)) {
       row.remove();
-      ({ page, tbody } = newPage({ host, cls, columns, printed, first: false }));
+      ({ page, tbody } = newPage({ host, cls, columns, printed, first: false, subtitle }));
       pages.push(page);
       tbody.append(row);
     }
   }
 
   pages.forEach((p, i) => p.append(el('footer.sheet__pagefoot', {
-    text: `${cls.name} · Seite ${i + 1} von ${pages.length}`,
+    text: `${cls.name}${subtitle ? ` · ${subtitle}` : ''} · Seite ${i + 1} von ${pages.length}`,
   })));
 }
 
-function newPage({ host, cls, columns, printed, first }) {
+function newPage({ host, cls, columns, printed, first, subtitle = '' }) {
   const tbody = el('tbody');
   const page = el('section.sheet.sheet--list', {}, [
     el('header.sheet__head', {}, [
       el('div.sheet__ident', {}, [
         el('div', {}, [
           el('h1.sheet__name', { text: `Klasse ${cls.name}${first ? '' : ' (Fortsetzung)'}` }),
-          el('p.sheet__meta', { text: `Stand ${printed}` }),
+          el('p.sheet__meta', { text: subtitle ? `${subtitle} · Stand ${printed}` : `Stand ${printed}` }),
         ]),
       ]),
     ]),
@@ -86,8 +107,12 @@ function newPage({ host, cls, columns, printed, first }) {
   return { page, tbody };
 }
 
-function studentRow(student, columnCount) {
+function studentRow(student, columnCount, prefill = null) {
   const url = photoUrl(student);
+  const cell = (i) => {
+    const value = prefill && prefill.column === i ? prefill.values.get(student.id) || '' : '';
+    return el('td.blank-table__cell', { class: value ? 'blank-table__cell--filled' : '', text: value });
+  };
   return el('tr', {}, [
     el('td.blank-table__who', {}, [
       el('div.blank-table__ident', {}, [
@@ -97,7 +122,7 @@ function studentRow(student, columnCount) {
         el('span.blank-table__name', { text: store.fullName(student) || '—' }),
       ]),
     ]),
-    ...Array.from({ length: columnCount }, () => el('td.blank-table__cell')),
+    ...Array.from({ length: columnCount }, (_, i) => cell(i)),
   ]);
 }
 

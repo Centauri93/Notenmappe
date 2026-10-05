@@ -184,6 +184,10 @@ Der Reiter **Besprechung** begleitet das Gespräch mit einzelnen Schüler:innen.
    die digitalen Notizen stehen unter „Notizen“ (Rest wird mit Linien
    aufgefüllt). Für die ganze Klasse oder einzeln.
 
+5. **Übersicht:** **„⎙ Übersicht“** erzeugt die leere Klassenliste (Foto,
+   Name, acht Kästchen, hohe Kopfzeile) – mit der vergebenen Endnote in der
+   ersten Spalte „SoLei“; die übrigen Spalten bleiben frei zum Handeintragen.
+
 Löschen einer Besprechung entfernt nur Endnoten und Notizen – die
 Einzelnoten der Stunden bleiben.
 

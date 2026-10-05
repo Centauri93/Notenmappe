@@ -1408,7 +1408,7 @@ body.is-printing-preview #print-root {
   overflow-wrap: anywhere;
 }
 .blank-table th.blank-table__who { text-align: left; width: 62mm; padding-left: .4rem; }
-.blank-table__cell { height: 15mm; }
+.blank-table__cell { height: 15mm; text-align: center; font-size: 1.25rem; font-weight: 800; }
 .blank-table__ident { display: flex; align-items: center; gap: .45rem; min-width: 0; }
 .blank-table__photo { width: 15mm; height: 15mm; display: block; object-fit: cover; background: #eee; flex: none; }
 .blank-table__photo--fallback { display: grid; place-items: center; font-size: .85rem; font-weight: 700; color: #666; }

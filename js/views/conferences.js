@@ -12,6 +12,7 @@
 import * as store from '../store.js';
 import { classHeader } from './classnav.js';
 import { openReport } from './report.js';
+import { openConferenceOverview } from './blanklist.js';
 import { applyCardScale, layoutCards, gridSlot } from '../seatlayout.js';
 import {
   el, clear, toast, openModal, confirmDialog,
@@ -79,6 +80,11 @@ export async function renderConferences(root, classId) {
         el('button.btn.btn--ghost', {
           type: 'button', text: '⎙ PDF Klasse',
           onClick: () => openReport({ cls, students, scope: 'class', range: { from: conf.from, to: conf.to }, conference: conf }),
+        }),
+        el('button.btn.btn--ghost', {
+          type: 'button', text: '⎙ Übersicht',
+          title: 'Klassenliste mit den Endnoten in der ersten Spalte',
+          onClick: () => openConferenceOverview({ cls, students, conference: conf }),
         }),
         el('button.btn.btn--ghost.btn--danger-ghost', {
           type: 'button', text: 'Löschen', onClick: () => removeDialog({ root, classId, conf }),
@@ -206,6 +212,11 @@ export async function renderConference(root, classId, confId) {
   clear(root);
   root.append(classHeader(cls, 'conferences', [
     el('a.btn', { href: `#/class/${classId}/conferences`, text: '‹ Alle Besprechungen' }),
+    el('button.btn', {
+      type: 'button', text: '⎙ Übersicht',
+      title: 'Klassenliste mit den Endnoten in der ersten Spalte, Rest zum Handeintragen',
+      onClick: () => openConferenceOverview({ cls, students, conference: conf }),
+    }),
     el('button.btn.btn--primary', {
       type: 'button', text: '⎙ PDF Klasse',
       onClick: () => openReport({ cls, students, scope: 'class', range: { from: conf.from, to: conf.to }, conference: conf }),
