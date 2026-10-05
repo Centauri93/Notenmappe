@@ -1,0 +1,1194 @@
+/* Notenmappe – Layout und Design. Hell/Dunkel, Touch-optimiert, druckfertig. */
+
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f6;
+  --border: #d5dae3;
+  --text: #1b2430;
+  --text-muted: #5d6878;
+  --accent: #2f5d8c;
+  --accent-soft: #e5edf6;
+  --ok: #1f8a4c;
+  --ok-soft: #e2f5e9;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --shadow: 0 1px 2px rgba(20, 30, 45, .07), 0 6px 20px rgba(20, 30, 45, .07);
+  --radius: 14px;
+  --tap: 48px;
+
+  --g1: #1f8a4c;
+  --g2: #4c9a3f;
+  --g3: #b58b12;
+  --g4: #cc7a1a;
+  --g5: #c2551f;
+  --g6: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14181f;
+    --surface: #1c222c;
+    --surface-2: #232b37;
+    --border: #333d4c;
+    --text: #e8ecf3;
+    --text-muted: #9aa6b8;
+    --accent: #74a9dd;
+    --accent-soft: #22334a;
+    --ok: #4ec27f;
+    --ok-soft: #1c3327;
+    --danger: #f2857c;
+    --danger-soft: #3a201e;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+
+    --g1: #4ec27f;
+    --g2: #82c264;
+    --g3: #dcb43c;
+    --g4: #e79b4a;
+    --g5: #e2794a;
+    --g6: #f2857c;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+body.has-modal { overflow: hidden; }
+
+h1, h2, h3, p, dl, dd { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+
+/* --------------------------------------------------------------- Kopfzeile */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .6rem clamp(.8rem, 3vw, 2rem);
+  padding-top: max(.6rem, env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.topbar__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.topnav { display: flex; gap: .25rem; }
+
+.topnav__link {
+  padding: .55rem .9rem;
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-weight: 550;
+}
+
+.topnav__link--active { background: var(--accent-soft); color: var(--accent); }
+
+.topnav__lock {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.topnav__lock:hover { background: var(--surface-2); }
+
+/* ------------------------------------------------------------ Sperrbildschirm */
+
+.lock-screen {
+  display: grid;
+  place-items: center;
+  min-height: calc(100dvh - 130px);
+  padding: 1rem;
+}
+
+.lock-card {
+  width: min(360px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: .6rem;
+  padding: 2rem 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.lock-card__mark { font-size: 2.2rem; }
+.lock-card__title { font-size: 1.3rem; }
+.lock-card__hint { color: var(--text-muted); font-size: .9rem; margin-bottom: .4rem; }
+
+.input--lock { text-align: center; font-size: 1.1rem; letter-spacing: .04em; }
+
+.lock-error {
+  min-height: 1.1em;
+  color: var(--danger);
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ Layout */
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+  padding-bottom: max(3rem, env(safe-area-inset-bottom));
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-head__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.page-title { font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -.02em; }
+.page-sub, .hint { color: var(--text-muted); font-size: .9rem; }
+.hint { display: block; margin-top: .35rem; }
+
+.back-link { display: inline-block; margin-bottom: .2rem; color: var(--text-muted); font-size: .9rem; }
+.back-link:hover { color: var(--accent); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .6rem; }
+
+.tab {
+  padding: .5rem .9rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: .92rem;
+  font-weight: 550;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tab--active { background: var(--accent); color: #fff; }
+
+/* --------------------------------------------------------------- Bedienung */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: var(--tap);
+  padding: .6rem 1.05rem;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .06s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover { border-color: var(--accent); }
+.btn:active { transform: scale(.985); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled:hover { border-color: var(--border); }
+
+.btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn--primary:hover { filter: brightness(1.07); }
+.btn--ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+.btn--ghost:hover { background: var(--surface-2); border-color: transparent; color: var(--text); }
+.btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn--danger-ghost { color: var(--danger); }
+.btn--danger-ghost:hover { background: var(--danger-soft); }
+.btn--lg { min-height: 56px; padding: .8rem 1.4rem; font-size: 1.02rem; }
+.btn--sm { min-height: 36px; padding: .3rem .7rem; font-size: .85rem; }
+.btn--wide { width: 100%; }
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+.label { display: block; color: var(--text-muted); font-size: .85rem; font-weight: 600; margin-bottom: .3rem; }
+
+.input, .textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: .6rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.textarea { min-height: 90px; resize: vertical; }
+.input:focus, .textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.input--date { min-width: 10rem; }
+
+.badge {
+  display: inline-block;
+  padding: .1rem .5rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.badge--open { background: var(--ok-soft); color: var(--ok); }
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: clamp(2rem, 8vw, 4rem) 1rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty--inline { padding: 2rem 1rem; }
+.empty__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
+
+/* ---------------------------------------------------------------- Klassen */
+
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.class-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.class-card__main {
+  display: block;
+  width: 100%;
+  padding: 1.1rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.class-card__main:hover { background: var(--surface-2); }
+.class-card__name { font-size: 1.2rem; letter-spacing: -.01em; }
+.class-card__meta { color: var(--text-muted); font-size: .9rem; margin-top: .2rem; }
+.class-card__date { color: var(--text-muted); font-size: .78rem; margin-top: .5rem; }
+.class-card__main .badge { margin-top: .5rem; }
+
+.class-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .2rem;
+  padding: .5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+/* ----------------------------------------------------------- Schülerliste */
+
+.student-list { display: grid; gap: .5rem; }
+
+.student-row {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .6rem .8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.student-row__name { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.student-row__name span { color: var(--text-muted); font-size: .88rem; }
+.student-row__actions { display: flex; gap: .25rem; }
+
+.avatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.avatar--fallback {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.avatar--lg { width: 64px; height: 64px; border-radius: 14px; font-size: 1.2rem; }
+
+.form { display: grid; gap: 1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+@media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+
+.photo-editor { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.photo-editor__buttons { display: grid; gap: .4rem; flex: 1; min-width: 190px; }
+
+.photo-preview {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.photo-preview__img { width: 100%; height: 100%; object-fit: cover; }
+.photo-preview__empty { color: var(--text-muted); font-size: .8rem; }
+
+/* ------------------------------------------------------------------ Modal */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(12, 18, 26, .5);
+  backdrop-filter: blur(2px);
+  overflow: auto;
+}
+
+.modal {
+  width: min(540px, 100%);
+  max-height: min(90vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  animation: pop .16s ease-out;
+}
+
+.modal--wide { width: min(860px, 100%); }
+
+@keyframes pop { from { transform: translateY(8px) scale(.98); opacity: 0; } }
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .9rem .9rem .9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal__title { font-size: 1.1rem; }
+.modal__body { padding: 1.2rem; overflow: auto; }
+.modal__text { color: var(--text-muted); }
+
+.modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+  padding: .9rem 1.2rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------------ Toast */
+
+#toasts {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: grid;
+  gap: .4rem;
+  justify-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  padding: .7rem 1.1rem;
+  border-radius: 999px;
+  background: #23303f;
+  color: #fff;
+  font-size: .92rem;
+  box-shadow: var(--shadow);
+  animation: toast-in .18s ease-out;
+}
+
+.toast--success { background: var(--ok); }
+.toast--error { background: var(--danger); }
+.toast--out { opacity: 0; transition: opacity .3s; }
+
+@keyframes toast-in { from { transform: translateY(10px); opacity: 0; } }
+
+/* ---------------------------------------------------------------- Sitzplan */
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  margin-bottom: .6rem;
+  padding: .55rem .85rem;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: .9rem;
+  font-weight: 550;
+}
+
+/* Knöpfe, die im Vollbild aus der Kopfzeile in die Statusleiste wandern */
+.status__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.status__actions:empty { display: none; }
+
+/* ------------------------------------------------------ Sitzplan-Vollbild */
+
+/*
+ * Kopfzeile, Reiter und Seitenränder verschwinden; die Statusleiste liegt
+ * oben am Bildschirmrand und die Sitzfläche füllt den Rest. Die Karten
+ * behalten ihre relativen Positionen und verteilen sich auf die größere
+ * Fläche.
+ */
+body.seating-fullscreen { overflow: hidden; }
+body.seating-fullscreen .topbar,
+body.seating-fullscreen .page-head { display: none; }
+
+body.seating-fullscreen .status {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: max(.5rem, env(safe-area-inset-top)) max(.85rem, env(safe-area-inset-right))
+    .5rem max(.85rem, env(safe-area-inset-left));
+  border-radius: 0;
+  background: color-mix(in srgb, var(--bg) 92%, var(--accent));
+  border-bottom: 1px solid var(--border);
+}
+
+body.seating-fullscreen .seating-canvas {
+  position: fixed;
+  /* Unter der Statusleiste beginnen – deren Höhe hängt vom Umbruch ab,
+     deshalb etwas großzügig */
+  top: var(--fs-bar, 3.6rem);
+  left: 0; right: 0; bottom: 0;
+  z-index: 30;
+  width: auto;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Regler für die Kartengröße im Sitzplan */
+.zoom { display: flex; align-items: center; gap: .5rem; flex: none; }
+.zoom__label { font-size: .85rem; opacity: .85; }
+.zoom__value { min-width: 3.2rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+.zoom__slider {
+  width: clamp(110px, 18vw, 190px);
+  height: 28px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.seating-canvas {
+  --card-w: 92;
+  --card-h: 110;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  /* In die sichtbare Fläche einpassen, damit man nicht scrollen muss */
+  max-height: calc(100dvh - 250px);
+  min-height: 340px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--border) 90%, transparent) 1px, transparent 0)
+    0 0 / 28px 28px,
+    var(--surface);
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Im Hochformat (iPad, Handy) die volle Höhe nutzen statt fester Seitenverhältnisse */
+@media (orientation: portrait) {
+  .seating-canvas { aspect-ratio: auto; height: calc(100dvh - 260px); }
+}
+
+@media (max-width: 700px) {
+  .seating-canvas { --card-w: 74; --card-h: 88; }
+}
+
+.seat-card {
+  position: absolute;
+  width: calc(var(--card-w) * 1px);
+  height: calc(var(--card-h) * 1px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  /* Knapper Innenabstand: Foto und Name sollen die Fläche ausnutzen */
+  gap: calc(var(--card-w) * .025px);
+  padding: calc(var(--card-w) * .04px);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.seat-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.seat-card.is-dragging {
+  cursor: grabbing;
+  z-index: 5;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .28);
+  transform: scale(1.04);
+  transition: none;
+}
+
+.seat-card.is-graded { border-color: var(--ok); background: color-mix(in srgb, var(--ok-soft) 60%, var(--surface)); }
+
+.seat-card__photo {
+  width: calc(var(--card-w) * .72px);
+  height: calc(var(--card-w) * .72px);
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-2);
+  pointer-events: none;
+}
+
+.seat-card__photo--fallback {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: calc(var(--card-w) * .22px);
+}
+
+.seat-card__name {
+  flex: none;
+  /* Etwas Luft, damit Unterlängen (g, p) nicht abgeschnitten werden */
+  min-height: 2.6em;
+  /* Schrift skaliert mit der eingestellten Kartengröße mit */
+  font-size: calc(var(--card-w) * .112px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  pointer-events: none;
+}
+
+.card__grade {
+  position: absolute;
+  top: calc(var(--card-w) * -.09px);
+  right: calc(var(--card-w) * -.07px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(var(--card-w) * .3px);
+  height: calc(var(--card-w) * .3px);
+  padding: 0 calc(var(--card-w) * .05px);
+  border-radius: 999px;
+  background: var(--surface);
+  border: 2px solid currentColor;
+  font-size: calc(var(--card-w) * .19px);
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.card__grade[data-value] { display: inline-flex; }
+
+/*
+ * 6-Monats-Schnitt in der unteren rechten Ecke. Bewusst neutral (nicht in den
+ * Notenfarben), damit er sich klar von der Stundennote oben rechts abhebt.
+ * Sitzt wie die Note leicht außerhalb der Karte, um Foto und Name freizuhalten.
+ */
+.card__avg {
+  position: absolute;
+  bottom: calc(var(--card-w) * -.09px);
+  right: calc(var(--card-w) * -.07px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(var(--card-w) * .3px);
+  height: calc(var(--card-w) * .3px);
+  padding: 0 calc(var(--card-w) * .06px);
+  border-radius: 999px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-size: calc(var(--card-w) * .16px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.seat-card.has-comment::after {
+  content: "✎";
+  position: absolute;
+  left: calc(var(--card-w) * -.06px);
+  top: calc(var(--card-w) * -.07px);
+  width: calc(var(--card-w) * .24px);
+  height: calc(var(--card-w) * .24px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: calc(var(--card-w) * .13px);
+}
+
+/* Markierungen am unteren Kartenrand: fehlt, doppelte Wertung */
+.card__flags {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Vollständig unterhalb der Karte, damit nichts den Namen überdeckt */
+  bottom: calc(var(--card-w) * -.19px);
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.flag {
+  padding: 0 calc(var(--card-w) * .06px);
+  border-radius: 999px;
+  font-size: calc(var(--card-w) * .115px);
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: .02em;
+  border: 1.5px solid var(--surface);
+}
+
+.flag--absent { background: var(--text-muted); color: var(--surface); }
+.flag--boost { background: var(--accent); color: #fff; }
+
+.seat-card.is-absent {
+  border-color: var(--text-muted);
+  border-style: dashed;
+  background: var(--surface-2);
+}
+
+.seat-card.is-absent .seat-card__photo { opacity: .4; filter: grayscale(1); }
+.seat-card.is-absent .seat-card__name { opacity: .6; }
+
+/* Notenfarben */
+[data-value="1"] { color: var(--g1); }
+[data-value="2"] { color: var(--g2); }
+[data-value="3"] { color: var(--g3); }
+[data-value="4"] { color: var(--g4); }
+[data-value="5"] { color: var(--g5); }
+[data-value="6"] { color: var(--g6); }
+
+/* ------------------------------------------------------------ Noteneingabe */
+
+.grade-dialog { display: grid; gap: 1rem; }
+.grade-dialog__head { display: flex; align-items: center; gap: 1rem; }
+.grade-dialog__name { display: block; font-size: 1.1rem; }
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .6rem;
+}
+
+@media (min-width: 560px) { .grade-grid { grid-template-columns: repeat(6, 1fr); } }
+
+.grade-btn {
+  min-height: 76px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.9rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .06s, border-color .12s, background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.grade-btn:hover { border-color: currentColor; }
+.grade-btn:active { transform: scale(.95); }
+.grade-btn[data-value] { color: var(--text); }
+.grade-btn:disabled { opacity: .35; cursor: not-allowed; }
+.grade-btn:disabled:hover { border-color: var(--border); background: var(--surface); }
+
+/* Bereits vergebene Note im Dialog hervorheben */
+.grade-btn.is-active { border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--accent-soft); }
+.grade-btn.is-active[data-value="1"] { border-color: var(--g1); background: color-mix(in srgb, var(--g1) 16%, var(--surface)); }
+.grade-btn.is-active[data-value="2"] { border-color: var(--g2); background: color-mix(in srgb, var(--g2) 16%, var(--surface)); }
+.grade-btn.is-active[data-value="3"] { border-color: var(--g3); background: color-mix(in srgb, var(--g3) 16%, var(--surface)); }
+.grade-btn.is-active[data-value="4"] { border-color: var(--g4); background: color-mix(in srgb, var(--g4) 16%, var(--surface)); }
+.grade-btn.is-active[data-value="5"] { border-color: var(--g5); background: color-mix(in srgb, var(--g5) 16%, var(--surface)); }
+.grade-btn.is-active[data-value="6"] { border-color: var(--g6); background: color-mix(in srgb, var(--g6) 16%, var(--surface)); }
+
+/* Fehlt / Mehrfachwertung */
+.state-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+@media (max-width: 460px) { .state-row { grid-template-columns: 1fr; } }
+
+.state-btn { font-weight: 650; }
+.state-btn--absent.is-active { background: var(--text-muted); border-color: var(--text-muted); color: var(--surface); }
+
+/* Drei kleine Knöpfe (×2/×3/×5) im selben Raum, den vorher der eine große Knopf belegte */
+.weight-group { display: flex; gap: .4rem; }
+.state-btn--weight { flex: 1; min-width: 0; padding-inline: 0; }
+.state-btn--weight.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.dialog-state { font-weight: 600; }
+.grade-btn[data-value="1"]:hover { background: color-mix(in srgb, var(--g1) 14%, var(--surface)); border-color: var(--g1); }
+.grade-btn[data-value="2"]:hover { background: color-mix(in srgb, var(--g2) 14%, var(--surface)); border-color: var(--g2); }
+.grade-btn[data-value="3"]:hover { background: color-mix(in srgb, var(--g3) 14%, var(--surface)); border-color: var(--g3); }
+.grade-btn[data-value="4"]:hover { background: color-mix(in srgb, var(--g4) 14%, var(--surface)); border-color: var(--g4); }
+.grade-btn[data-value="5"]:hover { background: color-mix(in srgb, var(--g5) 14%, var(--surface)); border-color: var(--g5); }
+.grade-btn[data-value="6"]:hover { background: color-mix(in srgb, var(--g6) 14%, var(--surface)); border-color: var(--g6); }
+
+.comment-box[hidden] { display: none; }
+.grade-history { border-top: 1px solid var(--border); padding-top: .8rem; }
+.grade-history__list { display: grid; gap: .35rem; margin-top: .4rem; }
+
+.grade-history__item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .3rem .3rem .3rem .5rem;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.grade-history__comment { flex: 1; min-width: 0; color: var(--text-muted); font-size: .88rem; }
+
+.grade-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 .3rem;
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  font-weight: 750;
+  background: var(--surface);
+}
+
+.grade-chip--btn { cursor: pointer; font: inherit; font-weight: 750; }
+.grade-chip.has-comment { box-shadow: inset 0 -4px 0 color-mix(in srgb, currentColor 45%, transparent); }
+.grade-chip--comment { border-color: var(--accent); color: var(--accent); font-size: .95rem; }
+
+.grade-chip--absent {
+  border-color: var(--text-muted);
+  border-style: dashed;
+  color: var(--text-muted);
+  font-size: .7rem;
+  letter-spacing: .02em;
+  padding: 0 .45rem;
+}
+
+/* Doppelt gewertete Noten in Tabelle und Übersicht */
+.grade-chip.is-boosted { position: relative; overflow: visible; }
+
+.chip-boost {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  padding: 0 .25rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------- Tabelle */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: .8rem;
+  margin-bottom: 1rem;
+  padding: .8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.filter-bar__field { display: block; }
+
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.grade-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /*
+   * Bewusst kein overflow: hidden – das würde die Tabelle zum Bezugsrahmen
+   * machen und die feststehende Namensspalte (position: sticky) aushebeln.
+   * Die runden Ecken kommen deshalb von den Eckzellen selbst.
+   */
+}
+
+.grade-table thead th:first-child { border-top-left-radius: var(--radius); }
+.grade-table thead th:last-child { border-top-right-radius: var(--radius); }
+.grade-table tbody tr:last-child > *:first-child { border-bottom-left-radius: var(--radius); }
+.grade-table tbody tr:last-child > *:last-child { border-bottom-right-radius: var(--radius); }
+
+.grade-table th, .grade-table td {
+  padding: .55rem .7rem;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.grade-table thead th { background: var(--surface-2); font-size: .8rem; color: var(--text-muted); }
+.grade-table tbody tr:last-child th, .grade-table tbody tr:last-child td { border-bottom: 0; }
+.grade-table tbody tr:hover td, .grade-table tbody tr:hover th { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+
+.col-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 160px;
+  background: var(--surface);
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.grade-table thead .col-name { background: var(--surface-2); z-index: 2; }
+
+/* Kleines Foto vor dem Namen – hilft beim Wiedererkennen, ohne die Spalte zu verbreitern */
+.cell-person { display: flex; align-items: center; gap: .45rem; min-width: 0; }
+
+.cell-avatar {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.cell-avatar--fallback {
+  display: grid;
+  place-items: center;
+  font-size: .62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.col-session__date { display: block; font-weight: 700; color: var(--text); }
+.col-session__year { display: block; font-size: .7rem; }
+.cell-grade { white-space: nowrap; }
+.cell-grade .grade-chip { margin: 0 .1rem; }
+.cell-empty { color: var(--text-muted); }
+.col-avg { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
+.avg-value { display: block; font-size: 1.1rem; font-weight: 750; }
+.avg-count { display: block; font-size: .7rem; color: var(--text-muted); }
+
+.detail { display: grid; gap: .7rem; }
+.detail__row { display: flex; align-items: center; gap: .6rem; }
+.detail__row .label { margin: 0; min-width: 8rem; }
+
+/* -------------------------------------------------------- Durchschnitte */
+
+.avg-summary {
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  margin: .8rem 0 1rem;
+  padding: .9rem 1.1rem;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.avg-summary .label { margin: 0; color: inherit; }
+.avg-summary__value { font-size: 2rem; font-weight: 800; }
+
+.avg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .6rem; }
+
+.avg-card {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .6rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.avg-card--empty { opacity: .55; }
+.avg-card__name { flex: 1; min-width: 0; display: grid; }
+.avg-card__name .hint { margin: 0; }
+.avg-card__result { text-align: right; }
+.avg-card__value { display: block; font-size: 1.5rem; font-weight: 800; }
+.avg-card__rounded { display: block; font-size: .74rem; color: var(--text-muted); }
+
+/* ------------------------------------------------------------ Einstellungen */
+
+.panel {
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panel--accent { border-color: var(--accent); border-width: 2px; }
+.panel--danger { border-color: color-mix(in srgb, var(--danger) 50%, var(--border)); }
+.panel__title { font-size: 1.1rem; margin-bottom: .5rem; }
+.panel__text { color: var(--text-muted); margin-bottom: .9rem; }
+.panel__actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .8rem; }
+.stats__item { padding: .7rem .9rem; border-radius: 11px; background: var(--surface-2); }
+.stats__item dt { color: var(--text-muted); font-size: .8rem; }
+.stats__item dd { margin: 0; font-size: 1.3rem; font-weight: 750; }
+
+/* Fortschritt beim Foto-Import */
+.progress {
+  height: 10px;
+  margin: 1rem 0 .5rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width .15s linear;
+}
+
+.progress__label {
+  color: var(--text-muted);
+  font-size: .85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report { display: grid; gap: 1rem; }
+.report-block { display: grid; gap: .3rem; }
+
+.bullets { display: grid; gap: .4rem; color: var(--text-muted); }
+.bullets li { padding-left: 1.1rem; position: relative; }
+.bullets li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
+
+/* ------------------------------------------------------- Druck / PDF-Ansicht */
+
+#print-root { display: none; }
+
+body.is-printing-preview { overflow: hidden; }
+body.is-printing-preview #print-root {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--bg);
+  overflow: auto;
+}
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .8rem clamp(.8rem, 3vw, 2rem);
+  padding-top: max(.8rem, env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.print-toolbar__actions { display: flex; gap: .5rem; }
+.print-pages { display: grid; gap: 1.2rem; padding: 1.2rem; justify-items: center; }
+
+.sheet {
+  width: min(820px, 100%);
+  padding: 2rem;
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+/* Kopfzeile: reine Identität (Foto, Name, Klasse/Zeitraum) – gilt fürs ganze Blatt */
+.sheet__head {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #111;
+}
+
+.sheet__ident { display: flex; align-items: center; gap: 1rem; }
+
+/*
+ * Abschnitt darunter: „Sonstige Leistungen“.
+ * Der erste Abschnitt lehnt sich an die Trennlinie der Kopfzeile an (sonst
+ * gäbe es zwei Linien mit Lücke dazwischen); ab dem zweiten Abschnitt zieht
+ * jeder seine eigene Trennlinie.
+ */
+.sheet__section { margin-top: 1.2rem; }
+.sheet__section + .sheet__section { padding-top: 1rem; border-top: 2px solid #111; }
+
+.sheet__section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.sheet__section-title { font-size: 1rem; }
+
+.sheet__photo {
+  width: 76px;
+  height: 76px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #eee;
+}
+
+.sheet__photo--fallback { display: grid; place-items: center; font-weight: 700; color: #666; }
+.sheet__name { font-size: 1.5rem; letter-spacing: -.02em; }
+.sheet__meta { color: #555; font-size: .9rem; }
+.sheet__result { text-align: right; }
+.sheet__result-label { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #555; }
+.sheet__result-value { display: block; font-size: 2.4rem; line-height: 1.1; font-weight: 800; }
+.sheet__result-rounded { display: block; font-size: .8rem; color: #555; }
+
+/*
+ * Feste Spaltenbreiten: Datum, Uhrzeit, Note und Wertung bleiben schmal und
+ * dicht beieinander, der gesamte übrige Platz gehört der Bemerkung.
+ */
+.sheet__table { width: 100%; border-collapse: collapse; margin-top: 1rem; table-layout: fixed; }
+.sheet__table th, .sheet__table td { padding: .45rem .35rem; border-bottom: 1px solid #ddd; text-align: left; font-size: .92rem; }
+.sheet__table th { font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: #555; }
+.sheet__table th:first-child, .sheet__table td:first-child { padding-left: 0; }
+
+/* Bei table-layout: fixed geben die Kopfzellen die Spaltenbreite vor */
+.sheet__table th:nth-child(1) { width: 7.5rem; }
+.sheet__table th:nth-child(2) { width: 4.5rem; }
+.sheet__table th:nth-child(3) { width: 3rem; text-align: center; }
+/* Breit genug für die Überschrift „Wertung“, sonst würde sie überlaufen */
+.sheet__table th:nth-child(4) { width: 5rem; text-align: center; }
+.sheet__table th:nth-child(5) { padding-left: .8rem; }
+
+.sheet__date, .sheet__time { white-space: nowrap; }
+.sheet__grade { font-weight: 800; text-align: center !important; }
+.sheet__weight { text-align: center !important; color: #666; }
+.sheet__comment { padding-left: .8rem; overflow-wrap: anywhere; }
+.sheet__grade--absent { font-weight: 600; font-size: .8rem; color: #666; }
+.sheet__row--absent td { color: #666; }
+
+@media print {
+  :root { --shadow: none; }
+  body { background: #fff; }
+  .topbar, .app, #toasts, .overlay, .print-toolbar { display: none !important; }
+  body.is-printing-preview #print-root { position: static; overflow: visible; background: #fff; }
+  .print-pages { display: block; padding: 0; }
+
+  .sheet {
+    width: auto;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+  .sheet:last-child { break-after: auto; page-break-after: auto; }
+  .sheet__table { break-inside: auto; }
+  .sheet__table tr { break-inside: avoid; page-break-inside: avoid; }
+}
+
+@page { size: A4 portrait; margin: 16mm 14mm; }
