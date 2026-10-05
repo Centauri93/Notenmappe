@@ -1,13 +1,14 @@
 /**
  * Rahmen der Druckvorschau: Werkzeugleiste, Vollbild-Überlagerung und der
- * Aufruf des Browser-Druckdialogs. Beide Ausdrucke teilen sich diesen Rahmen.
+ * Aufruf des Browser-Druckdialogs. `pagesElement` ist der Behälter, in den
+ * der Aufrufer seine Seiten baut (für das Ausmessen muss er im DOM hängen).
  */
 
 import { el, clear } from '../ui.js';
 
 /**
  * @param {{title: string, pages: Node[], hint?: string}} opts
- * @returns {{close: () => void}}
+ * @returns {{close: () => void, pagesElement: HTMLElement}}
  */
 export function openPrintPreview({ title, pages, hint }) {
   let host = document.getElementById('print-root');
@@ -30,7 +31,8 @@ export function openPrintPreview({ title, pages, hint }) {
     ]),
   ]);
 
-  host.append(toolbar, el('div.print-pages', {}, pages));
+  const pagesElement = el('div.print-pages', {}, pages);
+  host.append(toolbar, pagesElement);
   document.body.classList.add('is-printing-preview');
 
   function onKey(ev) { if (ev.key === 'Escape') closePreview(); }
@@ -42,5 +44,5 @@ export function openPrintPreview({ title, pages, hint }) {
   document.addEventListener('keydown', onKey, true);
   host.__close = closePreview;
 
-  return { close: closePreview };
+  return { close: closePreview, pagesElement };
 }

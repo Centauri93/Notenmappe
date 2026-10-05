@@ -58,6 +58,18 @@ export function identityHead({ student, cls, rangeLabel }) {
   ]);
 }
 
+/** Schmale Kopfzeile für Folgeseiten derselben Schüler:in. */
+export function continuationHead({ student, cls, rangeLabel }) {
+  return el('header.sheet__head.sheet__head--cont', {}, [
+    el('div.sheet__ident', {}, [
+      el('div', {}, [
+        el('h1.sheet__name.sheet__name--cont', { text: store.fullName(student) || '—' }),
+        el('p.sheet__meta', { text: `Klasse ${cls.name} · Zeitraum ${rangeLabel}` }),
+      ]),
+    ]),
+  ]);
+}
+
 /** Abschnittsüberschrift, rechts optional die große Note. */
 export function sectionHead(title, right = null) {
   return el('div.sheet__section-head', {}, [
@@ -102,25 +114,12 @@ export function finalGradeBox() {
  */
 export const GRADING_NOTE = 'Die Einzelnoten zeigen deine Beiträge in den einzelnen Stunden. '
   + 'Die Note für die Sonstigen Leistungen ist eine Gesamtbewertung (§ 48 SchulG NRW): '
-  + 'Sie berücksichtigt zusätzlich, wie kontinuierlich und fachlich fundiert du dich beteiligst, '
+  + 'Unter anderem berücksichtigt sie zusätzlich, wie kontinuierlich und fachlich fundiert du dich beteiligst, '
   + 'wie du dich im Verlauf entwickelst und welche Ergebnisse du in Gruppen- und Vorbereitungsaufgaben erzielst. '
   + 'Die Gesamtnote kann daher vom errechneten Durchschnitt abweichen.';
 
 export function gradingNote() {
   return el('p.sheet__footnote', { text: GRADING_NOTE });
-}
-
-/**
- * Liniertes Notizfeld für handschriftliche Ergänzungen nach dem Ausdruck.
- * Feste Höhe, damit es im Druck nie zerrissen wird.
- */
-export function notesBox(title = 'Notizen') {
-  return el('section.sheet__notes', {}, [
-    el('h2.sheet__section-title', { text: title }),
-    // Echte Rahmenlinien statt Hintergrundgrafik – die druckt jeder Browser
-    el('div.sheet__lines', { 'aria-hidden': 'true' },
-      Array.from({ length: 8 }, () => el('div.sheet__line'))),
-  ]);
 }
 
 /* --------------------------------------------------- Sonstige Leistungen */

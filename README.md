@@ -113,15 +113,22 @@ Für jedes Foto entsteht ein:e Schüler:in; der Name kommt aus dem Dateinamen
 ### PDF
 
 **„⎙ PDF Klasse“** (oder „PDF“ in einer Zeile der Notentabelle) öffnet eine
-Druckvorschau. Im Druckdialog **„PDF“ → „Als PDF sichern“** wählen. Pro
-Schüler:in entsteht ein Blatt mit allen Einzelnoten, Bemerkungen und der
-einem **leeren Notenfeld** rechts oben, in das
-die Lehrkraft die tatsächliche Note handschriftlich einträgt, falls
-übergreifende Faktoren den Schnitt verschieben; der rechnerische Durchschnitt steht klein unter der Tabelle. Unten
-auf jedem Blatt ein liniertes **Notizfeld** für handschriftliche Ergänzungen.
-Unter der Notenliste steht in Kleindruck eine Fußnote zur Notenbildung
-(Gesamtbewertung nach § 48 SchulG NRW); der Wortlaut liegt als `GRADING_NOTE`
-in `js/views/reportparts.js`.
+Druckvorschau. Im Druckdialog **„PDF“ → „Als PDF sichern“** wählen.
+
+Der Ausdruck ist auf **doppelseitigen Druck** ausgelegt: Jede Schüler:in
+bekommt genau ein Blatt (Vorder- und Rückseite), bei sehr vielen Noten zwei.
+Die App teilt die Seiten selbst ein (feste A4-Kästen, die Notenliste wird bei
+Bedarf mit wiederholter Kopfzeile fortgesetzt) und sorgt für eine gerade
+Seitenzahl je Schüler:in.
+
+Auf dem Blatt: alle Einzelnoten mit Bemerkungen, rechts oben ein **leeres
+Notenfeld** für die handschriftlich eingetragene Note, der rechnerische
+Durchschnitt klein unter der Tabelle, darunter in Kleindruck eine Fußnote
+zur Notenbildung (Gesamtbewertung nach § 48 SchulG NRW; Wortlaut als
+`GRADING_NOTE` in `js/views/reportparts.js`). Den Rest jeder Seite füllt ein
+liniertes **Notizfeld** bis zum Seitenende; unten steht die Seitenzahl.
+
+> Im Druckdialog **„beidseitig“** und **Maßstab 100 %** wählen.
 
 ## Sicherung
 
