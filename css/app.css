@@ -1194,6 +1194,16 @@ body.is-printing-preview #print-root {
 .sheet__avg-label { margin-right: .5rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
 .sheet__avg-value { font-size: 1.05rem; color: #111; }
 
+/* Fußnote zur Notenbildung: bewusst sehr klein, grau, abgesetzt */
+.sheet__footnote {
+  margin-top: .8rem;
+  padding-top: .4rem;
+  border-top: 1px solid #ddd;
+  font-size: .62rem;
+  line-height: 1.4;
+  color: #666;
+}
+
 /* Liniertes Notizfeld am Ende des Blatts */
 .sheet__notes { margin-top: 1.4rem; padding-top: 1rem; border-top: 2px solid #111; }
 .sheet__lines { margin-top: .4rem; }

@@ -96,6 +96,21 @@ export function finalGradeBox() {
 }
 
 /**
+ * Fußnote zur Notenbildung – sehr klein, unter der Notenliste. Erklärt den
+ * Lernenden, warum die Gesamtnote vom rechnerischen Durchschnitt abweichen
+ * kann (pädagogische Gesamtbewertung nach § 48 SchulG NRW).
+ */
+export const GRADING_NOTE = 'Die Einzelnoten zeigen deine Beiträge in den einzelnen Stunden. '
+  + 'Die Note für die Sonstigen Leistungen ist eine Gesamtbewertung (§ 48 SchulG NRW): '
+  + 'Sie berücksichtigt zusätzlich, wie kontinuierlich und fachlich fundiert du dich beteiligst, '
+  + 'wie du dich im Verlauf entwickelst und welche Ergebnisse du in Gruppen- und Vorbereitungsaufgaben erzielst. '
+  + 'Die Gesamtnote kann daher vom errechneten Durchschnitt abweichen.';
+
+export function gradingNote() {
+  return el('p.sheet__footnote', { text: GRADING_NOTE });
+}
+
+/**
  * Liniertes Notizfeld für handschriftliche Ergänzungen nach dem Ausdruck.
  * Feste Höhe, damit es im Druck nie zerrissen wird.
  */

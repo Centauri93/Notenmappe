@@ -13,7 +13,7 @@ import * as store from '../store.js';
 import { el } from '../ui.js';
 import { openPrintPreview } from './printpreview.js';
 import {
-  loadReportData, identityHead, sectionHead, finalGradeBox, notesBox,
+  loadReportData, identityHead, sectionHead, finalGradeBox, notesBox, gradingNote,
   gradesTable, gradesFoot,
 } from './reportparts.js';
 
@@ -40,6 +40,7 @@ export async function openReport({ cls, students, scope, range }) {
         sectionHead('Sonstige Leistungen', finalGradeBox()),
         gradesTable(grades),
         gradesFoot(stats, printed),
+        gradingNote(),
       ]),
 
       // Platz für handschriftliche Ergänzungen auf dem Ausdruck

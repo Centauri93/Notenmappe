@@ -119,6 +119,9 @@ einem **leeren Notenfeld** rechts oben, in das
 die Lehrkraft die tatsächliche Note handschriftlich einträgt, falls
 übergreifende Faktoren den Schnitt verschieben; der rechnerische Durchschnitt steht klein unter der Tabelle. Unten
 auf jedem Blatt ein liniertes **Notizfeld** für handschriftliche Ergänzungen.
+Unter der Notenliste steht in Kleindruck eine Fußnote zur Notenbildung
+(Gesamtbewertung nach § 48 SchulG NRW); der Wortlaut liegt als `GRADING_NOTE`
+in `js/views/reportparts.js`.
 
 ## Sicherung
 
