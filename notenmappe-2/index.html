@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Notenmappe 2</title>
+  <meta name="description" content="Lokale Notenverwaltung für Lehrer:innen – ohne Cloud, ohne Login.">
+  <meta name="theme-color" content="#2f5d8c">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- PWA / iPad-Homescreen -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Notenmappe">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" href="./icons/icon-192.png">
+
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="#/classes">
+      <span class="topbar__mark" aria-hidden="true">1</span>
+      <span>Notenmappe 2</span>
+    </a>
+    <nav class="topnav">
+      <a class="topnav__link" href="#/classes">Klassen</a>
+      <a class="topnav__link" href="#/settings">Einstellungen</a>
+      <button class="topnav__link topnav__lock" id="lock-btn" type="button" hidden>🔒 Sperren</button>
+    </nav>
+  </header>
+
+  <main id="app" class="app"></main>
+
+  <noscript>
+    <p style="padding:2rem">Diese App benötigt JavaScript.</p>
+  </noscript>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
