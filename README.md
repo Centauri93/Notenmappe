@@ -84,8 +84,9 @@ endgültig löschen.
 Der erste Eintrag einer Stunde legt die Stunde automatisch an. Eine Stunde
 ohne Einträge wird beim Beenden verworfen.
 
-Rechts unten auf jeder Karte steht der **gewichtete Durchschnitt der letzten
-6 Monate**. Die farbige Marke oben rechts zeigt die Note **dieser** Stunde.
+Auf jeder Karte steht der **Vorname groß** (so spricht man die Schüler:innen
+an) und darunter kleiner der Nachname. Rechts unten steht der **gewichtete
+Durchschnitt der letzten 6 Monate**. Die farbige Marke oben rechts zeigt die Note **dieser** Stunde.
 
 ### Zeitpunkt einer Note
 

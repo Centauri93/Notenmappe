@@ -12,7 +12,9 @@ const JPEG_QUALITY = 0.82;
  * @returns {Promise<Blob>} quadratisches JPEG
  */
 export async function processPhoto(file) {
-  if (!file.type.startsWith('image/')) {
+  const looksLikeImage = (file.type && file.type.startsWith('image/'))
+    || /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?)$/i.test(file.name || '');
+  if (!looksLikeImage) {
     throw new Error('Bitte eine Bilddatei auswählen.');
   }
   const bitmap = await loadBitmap(file);

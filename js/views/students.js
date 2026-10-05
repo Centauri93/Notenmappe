@@ -196,7 +196,8 @@ function pickPhotos(root, classId) {
  * versehentlich doppelter Import die Klasse nicht verdoppelt.
  */
 async function importPhotos(root, classId, files) {
-  const images = files.filter((f) => f.type.startsWith('image/'));
+  // Manche Quellen liefern keinen MIME-Typ (z.B. Dateien mit Umlauten im Namen) – dann zählt die Endung
+  const images = files.filter(isImageFile);
   if (!images.length) {
     toast('Keine Bilddateien ausgewählt.', 'error');
     return;
@@ -259,6 +260,11 @@ async function importPhotos(root, classId, files) {
     return;
   }
   showImportReport({ created, skipped, unnamed, failed });
+}
+
+/** Bilddatei? Nach MIME-Typ, ersatzweise nach Dateiendung. */
+function isImageFile(f) {
+  return (f.type && f.type.startsWith('image/')) || /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?)$/i.test(f.name || '');
 }
 
 /** Vergleichsschlüssel für Namen – unabhängig von Groß-/Kleinschreibung. */

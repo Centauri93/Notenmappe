@@ -10,7 +10,7 @@
  */
 
 import * as store from '../store.js';
-import { classHeader } from './classnav.js';
+import { classHeader, cardName } from './classnav.js';
 import { openReport } from './report.js';
 import { openConferenceOverview } from './blanklist.js';
 import { applyCardScale, layoutCards, gridSlot } from '../seatlayout.js';
@@ -258,7 +258,7 @@ export async function renderConference(root, classId, confId) {
       url
         ? el('img.seat-card__photo', { src: url, alt: '', draggable: 'false' })
         : el('span.seat-card__photo.seat-card__photo--fallback', { text: initials(s) }),
-      el('span.seat-card__name', { text: store.fullName(s) || '—' }),
+      cardName(s),
       final ? el('span.card__grade.card__grade--final', { dataset: { value: String(entry.grade) }, text: final }) : null,
       el('span.card__avg', { text: avg === null ? '–' : store.formatAverage(avg) }),
       entry?.done ? el('span.conf-seat__check', { text: '✓', 'aria-label': 'besprochen' }) : null,

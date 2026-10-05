@@ -10,7 +10,7 @@
 import * as store from '../store.js';
 import { makeDraggable } from '../dnd.js';
 import { baseCardSize, gridSize, gridSlot, cardSizeOf, applyCardScale, layoutCards } from '../seatlayout.js';
-import { classHeader } from './classnav.js';
+import { classHeader, cardName } from './classnav.js';
 import { openGradeDialog as openSharedGradeDialog } from './gradedialog.js';
 import {
   el, clear, toast, openModal, confirmDialog,
@@ -321,7 +321,7 @@ export async function renderSeating(root, classId) {
       url
         ? el('img.seat-card__photo', { src: url, alt: '', draggable: 'false' })
         : el('span.seat-card__photo.seat-card__photo--fallback', { text: initials(student) }),
-      el('span.seat-card__name', { text: store.fullName(student) || '—' }),
+      cardName(student),
       badge,
       // 6-Monats-Schnitt, immer sichtbar – unabhängig von der aktuellen Stunde
       el('span.card__avg', { title: 'Durchschnitt der letzten 6 Monate' }),

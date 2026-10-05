@@ -32,3 +32,16 @@ export function classHeader(cls, active, actions = []) {
     el('div.page-head__actions', {}, actions.filter(Boolean)),
   ]);
 }
+
+/**
+ * Name auf einer Sitzplan-Karte: Vorname groß in der ersten Zeile (so
+ * spricht man die Schüler:innen an), Nachname kleiner darunter.
+ */
+export function cardName(student) {
+  const first = (student.firstName || '').trim();
+  const last = (student.lastName || '').trim();
+  return el('span.seat-card__name', {}, [
+    el('span.seat-card__first', { text: first || last || '—' }),
+    first && last ? el('span.seat-card__last', { text: last }) : null,
+  ]);
+}
